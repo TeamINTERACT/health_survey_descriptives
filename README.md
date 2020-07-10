@@ -9,7 +9,7 @@ This is repo for the descriptive statistics and comparisions between survey wave
 - [Saskatoon Markdown](https://github.com/TeamINTERACT/health_survey_descriptives/blob/master/wave1%20/Saskatoon/INTERACT_sk_W1_HS.md) ([HTML](https://github.com/TeamINTERACT/health_survey_descriptives/blob/master/wave1%20/Saskatoon/INTERACT_sk_W1_HS.html) right click to download) 
 - [Montreal Markdown](https://github.com/TeamINTERACT/health_survey_descriptives/blob/master/wave1%20/Montreal/INTERACT_mtl_W1_HS.md) ([HTML](https://github.com/TeamINTERACT/health_survey_descriptives/blob/master/wave1%20/Montreal/INTERACT_mtl_W1_HS.html) right click to download) 
 
-# Wave 2
+# Wave 2 (Coming soon)
 
 - Victoria Markdown (HTML)
 - Vancouver Markdown 
