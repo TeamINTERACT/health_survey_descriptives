@@ -30,13 +30,9 @@ The INTErventions, Research, and Action in Cities Team (INTERACT) is a national 
 The Saskatoon study evaluates the impacts of a Bus Rapid Transit system (BRT) along three major roadways. Participants who rode the bus at least once in a typical month were eligible to participate. Exclusion criteria across all sites were being younger than 18 years old, not being able to read or write English (or English or French in Montreal) well enough to answer an online survey and any intention to move out of the region in the next two year.
 Specific recruitment efforts were made to recruit participants who lived within a postal code that was within 800 m of the proposed BRT lines, but anyone in the city could participate. 
 
-Recruitment ran from September 19th to December 27th, 2018 (100 days), using social media, partner networks, in-person recruitment at bus shelters, and media appearences. Participants received a $10 gift certificate upon completion of the Health Questionnaire. 
+Recruitment ran from September 19th to December 27th, 2018 (100 days), using social media, partner networks, in-person recruitment at bus shelters, and media appearances. Participants received a $10 gift certificate upon completion of the Health Questionnaire. 
 
 In Saskatoon, 316 participants completed the Health Questionnaire. 
-
-
-
-
 
 ## Section 1: Transportation 
 
@@ -124,7 +120,6 @@ kable(full_table) %>%   kable_styling(bootstrap_options = "striped", full_width 
   </tr>
 </tbody>
 </table>
-
 
 
 ### On a scale of 1 to 4, with 1 being 'very safe and 4 being 'very unsafe', overall, how safe do you think traveling by bus is in your city?
@@ -9821,3 +9816,581 @@ kable(employment.tb) %>%  kable_styling(bootstrap_options = "striped", full_widt
   </tr>
 </tbody>
 </table>
+
+
+## Section 8: Transportation by Student Status
+
+### Creating a student variable
+
+```r
+d$student_t_f <- str_detect(d$employment_txt, "student|Student|School|school")
+
+d <- d %>% 
+    mutate(student = case_when(
+	    student_t_f == "TRUE" ~ "Student",
+	    student_t_f == "FALSE" ~ "Non Student"
+))
+
+table(d$student)
+```
+
+```
+## 
+## Non Student     Student 
+##         271          45
+```
+
+
+
+### Which Saskatoon Transit Go Pass do you own?
+
+```r
+response_labels = c(
+"Monthly adult pass",
+"Eco Pass",
+"UPass",
+"Student Pass",
+"Discounted Pass",
+"Low Income Pass",
+"I do not use a Go pass, I use a multi-use pass",
+"I do not use a Go pass, I use cash",
+"other"
+)
+
+
+ggplot(d, aes(x = factor(sask_bus_pass,
+                         labels = response_labels))) + geom_bar(na.rm = TRUE, alpha = 0.65) + xlab("Pass type") + 
+                          theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/sask_bus_pass student-1.png)<!-- -->
+
+
+### On a scale of 1 to 4, with 1 being 'very safe and 4 being 'very unsafe', overall, how safe do you think traveling by bus is in your city?
+
+
+```r
+response_labels <- c(
+    "Very Safe",
+    "Somewhat Safe",
+    "Somewhat Unsafe",
+    "Very Unsafe"
+  )
+
+ggplot(d, aes(x = factor(
+  x = bus_safe,
+  labels = response_labels
+))) + geom_bar(na.rm = TRUE) + xlab("Safety") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_safe student-1.png)<!-- -->
+
+
+
+### On a scale of 1 to 4, with 1 being 'very reliable' and 4 being 'very unreliable', overall, how reliable do you think traveling by bus is in your city?
+
+
+```r
+response_labels <- c(
+    "Very reliable",
+    "Somewhat reliable",
+    "Somewhat unreliable",
+    "Very unreliable",
+    "I don't know"
+  )
+ggplot(d, aes(x = factor(
+  x = d$bus_reliable,
+  labels = response_labels
+))) + geom_bar(na.rm = TRUE) + xlab("Reliability") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_reliable student-1.png)<!-- -->
+
+
+### On a scale of 1 to 4, with 1 being 'very convenient' and 4 being very inconvenient', overall, how convenient do you think traveling by bus is in your city?
+
+
+```r
+response_labels <- c(
+      "Very convenient",
+      "Somewhat convenient",
+      "Somewhat inconvenient",
+      "Very inconvenient",
+      "I don't know"
+      )
+ggplot(d, aes(x = factor(x = d$bus_convenient, labels = response_labels))) +
+      geom_bar(na.rm = TRUE) + xlab("Convenience") +
+      theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_convenient student-1.png)<!-- -->
+
+
+### How much more likely would you be to travel by bus more if? {.tabset .tabset-fade}
+
+#### a. the bus on the main part of your route ran every 10 minutes or less?
+
+```r
+response_labels <- c(
+           "Much more likely",
+           "Somewhat more likely",
+           "Not at all more likely",
+           "I don't know"
+         )
+ggplot(d,
+       aes(x = factor(
+         x = d$bus_moti_a,
+         labels = response_labels))) + 
+      geom_bar(na.rm = TRUE) +
+      xlab("Likelihood") +
+      theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_moti_a student-1.png)<!-- -->
+#### b. the bus route took you closer to your destination?
+
+```r
+response_labels <- c(
+           "Much more likely",
+           "Somewhat more likely",
+           "Not at all more likely",
+           "I don't know"
+         )
+ggplot(d,
+       aes(x = factor(
+         x = d$bus_moti_b,
+         labels = response_labels))) + 
+      geom_bar(na.rm = TRUE) +
+      xlab("Likelihood") +
+      theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_moti_b student-1.png)<!-- -->
+#### c. the bus and shelters were cleaner and in better condition?
+
+```r
+response_labels <- c(
+           "Much more likely",
+           "Somewhat more likely",
+           "Not at all more likely",
+           "I don't know"
+         )
+ggplot(d,
+       aes(x = factor(
+         x = d$bus_moti_c,
+         labels = response_labels))) +
+      geom_bar(na.rm = TRUE) + 
+      xlab("Likelihood") +
+      theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_moti_c student-1.png)<!-- -->
+#### d. the buses were on time and transfers were more reliable?
+
+```r
+response_labels <- c(
+           "Much more likely",
+           "Somewhat more likely",
+           "Not at all more likely",
+           "I don't know"
+         )
+ggplot(d,
+       aes(x = factor(
+         x = d$bus_moti_d,
+         labels = response_labels ))) + geom_bar(na.rm = TRUE) + xlab("Likelihood") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_moti_d student-1.png)<!-- -->
+#### e. the cost of bus passes or fare was lower?
+
+```r
+response_labels <- c(
+           "Much more likely",
+           "Somewhat more likely",
+           "Not at all more likely",
+           "I don't know"
+         )
+ggplot(d,
+       aes(x = factor(
+         x = d$bus_moti_e,
+         labels = response_labels))) +
+      geom_bar(na.rm = TRUE) +
+      xlab("Likelihood") +
+      theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_moti_e student-1.png)<!-- -->
+
+
+
+### Rank the following in order of how much they would influence your decision to use the bus. {.tabset .tabset-fade}
+
+#### a. the bus on the main part of your route ran every 10 minutes or less?
+
+```r
+response_labels <-  c(
+           "1",
+           "2",
+           "3",
+           "4",
+           "5",
+           "6",
+           "7"
+         )
+rank <- factor(
+         x = d$bus_moti_rank_a,
+         labels = response_labels)
+ggplot(d,
+       aes(x = rank 
+       )) +
+      geom_bar(na.rm = TRUE, alpha= 0.65) +
+      xlab("Rank") + 
+      facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_moti_rank_a student-1.png)<!-- -->
+#### b. the bus route took you closer to your destination?
+
+```r
+response_labels <-  c(
+           "1",
+           "2",
+           "3",
+           "4",
+           "5",
+           "6",
+           "7"
+         )
+rank <- factor(
+         x = d$bus_moti_rank_b,
+         labels = response_labels)
+ggplot(d,
+       aes(x = rank 
+       )) + geom_bar(na.rm = TRUE, alpha= 0.65) + xlab("Rank") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_moti_rank_b student-1.png)<!-- -->
+#### c. the bus and shelters were cleaner and in better condition?
+
+```r
+response_labels <-  c(
+           "1",
+           "2",
+           "3",
+           "4",
+           "5",
+           "6",
+           "7"
+         )
+rank <- factor(
+         x = d$bus_moti_rank_c,
+         labels = response_labels)
+ggplot(d,
+       aes(x = rank 
+       )) + geom_bar(na.rm = TRUE, alpha= 0.65) + xlab("Rank") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_moti_rank_c student-1.png)<!-- -->
+#### d. the buses were on time and transfers were more reliable?
+
+```r
+response_labels <-  c(
+           "1",
+           "2",
+           "3",
+           "4",
+           "5",
+           "6",
+           "7"
+         )
+rank <- factor(
+         x = d$bus_moti_rank_d,
+         labels = response_labels)
+ggplot(d,
+       aes(x = rank 
+       )) + geom_bar(na.rm = TRUE, alpha= 0.65) + xlab("Rank") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_moti_rank_d student-1.png)<!-- -->
+#### e. the cost of bus passes or fare was lower?
+
+```r
+response_labels <-  c(
+           "1",
+           "2",
+           "3",
+           "4",
+           "5",
+           "6",
+           "7"
+         )
+rank <- factor(
+         x = d$bus_moti_rank_e,
+         labels = response_labels)
+ggplot(d,
+       aes(x = rank 
+       )) + geom_bar(na.rm = TRUE , alpha= 0.65) + xlab("Rank") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_moti_rank_e student-1.png)<!-- -->
+
+
+
+### Place the slider between the following features of a future bus system, based on how important they are to you, with the slider closer to the more important feature.
+
+
+```r
+ggplot(d,
+       aes(x = bus_moti_slider 
+       )) + geom_histogram(na.rm = TRUE, bins = 15, fill= "#76D24A")  + xlab("Rank")
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/bus_moti_slider student-1.png)<!-- -->
+
+```r
+summary(d$bus_moti_slider) + 
+                          facet_wrap(~ student)
+```
+
+```
+## NULL
+```
+
+
+### Do you think Saskatoon Transit Service today is: {.tabset}
+
+
+#### a. Reliable
+
+```r
+response_labels <- c("Very",
+             "Moderately",
+             "Slightly",
+             "Not at all",
+             "I don't know")
+x <- factor(
+  x = d$sask_bus_now_a,
+  labels = response_labels)
+ggplot(d,
+       aes(x = x)) + geom_bar(na.rm = TRUE ,
+                              alpha = 0.65) + xlab("Reliability") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/sask_bus_now_a student-1.png)<!-- -->
+
+
+#### b. Clean
+
+```r
+response_labels <- c("Very",
+             "Moderately",
+             "Slightly",
+             "Not at all",
+             "I don't know")
+x <- factor(
+  x = d$sask_bus_now_b,
+  labels = response_labels)
+ggplot(d,
+       aes(x = x)) + geom_bar(na.rm = TRUE ,
+                              alpha = 0.65) + xlab("cleanness") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/sask_bus_now_b student-1.png)<!-- -->
+
+
+#### c. Safe
+
+```r
+response_labels <- c("Very",
+             "Moderately",
+             "Slightly",
+             "Not at all",
+             "I don't know")
+x <- factor(
+  x = d$sask_bus_now_c,
+  labels = response_labels)
+ggplot(d,
+       aes(x = x)) + geom_bar(na.rm = TRUE ,
+                              alpha = 0.65) + xlab("Safety") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/sask_bus_now_c student-1.png)<!-- -->
+
+
+#### d. Convenient
+
+```r
+response_labels <- c("Very",
+             "Moderately",
+             "Slightly",
+             "Not at all",
+             "I don't know")
+x <- factor(
+  x = d$sask_bus_now_d,
+  labels = response_labels )
+ggplot(d,
+       aes(x = x)) + geom_bar(na.rm = TRUE ,
+                              alpha = 0.65) + xlab("Convenience") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/sask_bus_now_d student-1.png)<!-- -->
+
+
+#### e. Too expensive
+
+```r
+response_labels <- c("Very",
+             "Moderately",
+             "Slightly",
+             "Not at all",
+             "I don't know")
+x <- factor(
+  x = d$sask_bus_now_e,
+  labels = response_labels)
+ggplot(d,
+       aes(x = x)) + geom_bar(na.rm = TRUE ,
+                              alpha = 0.65) + xlab("Too expensive") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/sask_bus_now_e student-1.png)<!-- -->
+
+
+#### f. Too cheap
+
+```r
+response_labels <- c("Very",
+             "Moderately",
+             "Slightly",
+             "Not at all")
+x <- factor(
+  x = d$sask_bus_now_f,
+  labels = response_labels)
+ggplot(d,
+       aes(x = x)) + geom_bar(na.rm = TRUE ,
+                              alpha = 0.65) + xlab("Too cheap") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/sask_bus_now_f student-1.png)<!-- -->
+
+
+
+#### g. Professional
+
+```r
+response_labels <- c("Very",
+             "Moderately",
+             "Slightly",
+             "Not at all",
+             "I don't know")
+x <- factor(
+  x = d$sask_bus_now_g,
+  labels = response_labels)
+ggplot(d,
+       aes(x = x)) + geom_bar(na.rm = TRUE ,
+                              alpha = 0.65) + xlab("Professional") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/sask_bus_now_g student-1.png)<!-- -->
+
+
+
+#### h. Environmentally friendly
+
+```r
+response_labels <- c("Very",
+             "Moderately",
+             "Slightly",
+             "Not at all",
+             "I don't know")
+x <- factor(
+  x = d$sask_bus_now_h,
+  labels = response_labels)
+ggplot(d,
+       aes(x = x)) + geom_bar(na.rm = TRUE ,
+                              alpha = 0.65) + xlab("Environmentally friendly") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/sask_bus_now_h student-1.png)<!-- -->
+
+
+### Have you ever heard of the Bus Rapid Transit (BRT) Corridors in Saskatoon?
+
+
+```r
+response_labels <- c("Yes",
+             "No")
+x <- factor(
+  x = d$brt_familiarity,
+  labels = response_labels)
+ggplot(d,
+       aes(x = x)) + geom_bar(na.rm = TRUE ,
+                              alpha = 0.65) + xlab("Response") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/brt_familiarity student-1.png)<!-- -->
+
+
+### Do you think that the Bus Rapid Transit (BRT) corridors are a good or bad idea for Saskatoon? It is
+
+```r
+response_labels <-c(
+    "Very good idea",
+    "Somewhat good idea",
+    "Somewhat bad idea",
+    "Very bad idea",
+    "I don't know"
+  )
+x <- factor(
+  x = d$brt_idea,
+  labels = response_labels)
+ggplot(d,
+       aes(x = x)) + geom_bar(na.rm = TRUE ,
+                              alpha = 0.65) + xlab("Response") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/brt_idea student-1.png)<!-- -->
+
+### Will you likely travel by bus more than you currently do once the Bus Rapid Transit (BRT) corridors are in place?
+
+
+```r
+response_labels <- c("Yes",
+                       "No")
+x <- factor(
+  x = d$brt_bus_more,
+  labels = response_labels)
+ggplot(d,
+       aes(x = x)) + geom_bar(na.rm = TRUE ,
+                              alpha = 0.65) + xlab("Response") + 
+                          facet_wrap(~ student)
+```
+
+![](INTERACT_sk_W1_HS_files/figure-html/brt_bus_more student-1.png)<!-- -->
+
