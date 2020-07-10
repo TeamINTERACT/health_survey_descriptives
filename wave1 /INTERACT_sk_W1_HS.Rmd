@@ -11,6 +11,7 @@ output:
     theme: yeti
     toc: yes
     toc_float: yes
+    keep_md: true
   pdf_document:
     toc: yes
     fig_height: 7
@@ -48,11 +49,8 @@ library(stringr)
 # Set Working Directory 
 #This is the folder path where all your working data will be stored (note: the backslashes are important here. Make sure it's / and not \)
 
-setwd("I:/Chercheurs/Kestens_Yan/Spherelab/Prj2017_INTERACT/DATA/_Treksoft_2019_10_10_2851c89")
-
 # Import Dataset(s)
-Health <- read.csv("health_1skt_main_2851c89.csv")
-#Health <- read.csv("/Users/dfuller/Desktop/health_2skt_main.bf53654.csv")
+Health <- read.csv("/Users/dfuller/Desktop/INTERACT/health_1skt_main_2cef601.csv")
 
 d <- Health
 
@@ -131,9 +129,6 @@ table_maker <<- function(dataset_name, column_name, response_labels){
       return(full_table)
 }
 ```
-
-
-
 
 The INTErventions, Research, and Action in Cities Team (INTERACT) is a national research collaboration of scientists, urban planners, and engaged citizens uncovering how the design of our cities is shaping the health and wellbeing of Canadians (www.teaminteract.ca). INTERACT is conducting longitudinal, mixed-methods natural experiment studies in four Canadian cities, with the aim of providing evidence on the impacts of urban transformations on people's physical activity, social participation, and wellbeing, and inequalities in these outcomes. 
 
