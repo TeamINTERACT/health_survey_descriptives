@@ -1,0 +1,2936 @@
+---
+title: '2017 Victoria Interact Health Survey Descriptives: Participant Interview Subset'
+author: "Jaimy Fischer"
+date: "Revised Feb 27, 2018"
+output: 
+  html_document:
+    code_folding: hide
+    fig_height: 7
+    fig_width: 12
+    toc: yes
+    toc_float:
+      collapsed: no
+---
+
+
+```{r setup, message = FALSE, warning = FALSE, echo = FALSE, inclue = FALSE}
+library(knitr)
+library(kableExtra)
+library(plyr)
+library(survey)
+library(ggplot2)
+library(reshape2)
+library(RColorBrewer)
+library(dplyr)
+library(tidyr)
+library(kableExtra)
+library(forcats)
+library(sjmisc)
+library(lubridate)
+library(eeptools)
+library(likert)
+library(data.table)
+library(stringr)
+library(tidyverse)
+
+d <- read.csv("I:/Chercheurs/Kestens_Yan/Spherelab/Prj2017_INTERACT/DATA/_Treksoft_2019_10_10_2851c89/health_1vic_main_2851c89.csv")
+
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7") #COLOURBLIND PALETTE 
+INTERACTPalette <- c("#1596FF", "#76D24A", "#404041", "#666666", "#EBF0F8") #ALLBRANDING 
+INTERACTPalettecont <- c("#76D24A", "#6BCB5E", "#60C472", "#55BE86", "#4AB79A", "#40B0AE", "#35AAC2", "#2AA3D6", "#1F9CEA", "#1596FF") #10 
+INTERACTPaletteSet <- c("#76D24A", "#1596FF", "#291EF8" ,"#FFD21F", "#EB2EBA","#EBF0F8", "#FF6A6A", "#AC26F2", "#1596FF", "#E5364D") #10
+INTERACTPalette3 <- c("#76D24A", "#60C472", "#4AB79A",  "#35AAC2", "#1F9CEA", "#1596FF") #6
+INTERACTPaletteYN <- c("#1596FF", "#404041", "#EBF0F8") #3
+INTERACTfade <- c("#1596FF", "#2ca0ff", "#43abff", "#5bb5ff", "#72c0ff", "#8acaff", "#a1d5ff", "#b8dfff", "#d0eaff", "#e7f4ff", "#f3f9ff", "#ffffff") #12
+INTERACTshortfade <- c("#1596FF", "#43abff", "#72c0ff",  "#a1d5ff",  "#d0eaff", "#ffffff") #6 
+INTERACTshorterfade <- c("#1596FF", "#72c0ff","#d0eaff", "#ffffff") #4
+
+```
+
+The INTErventions, Research, and Action in Cities Team (INTERACT) is a national research collaboration of scientists, urban planners, and engaged citizens uncovering how the design of our cities is shaping the health and wellbeing of Canadians (www.teaminteract.ca). INTERACT is conducting longitudinal, mixed-methods natural experiment studies in four Canadian cities, with the aim of providing evidence on the impacts of urban transformations on people's physical activity, social participation, and wellbeing, and inequalities in these outcomes. 
+
+
+Victoria's All Ages and Abilities (AAA) Cycling Network introduces protected cycling infrastructure across the city, starting with the implementation of a 5.4km grid in the downtown core by 2018. Victoria's $7.75M commitment to the AAA Cycling Network is an important step in its bold journey to becoming one of the best small cities for cycling in the world.
+
+
+People were eligible to participate if they lived in the Capital Region and biked at least once a month in the City of Victoria. Exclusion criteria across all sites were being younger than 18 years old, not being able to read or write English (or English or French in Montreal) well enough to answer an online survey and any intention to move out of the region in the next two years.Participants were recruited from May 19th to October 14th, 2017, through social media, postering, media articles, partner networks, snowball sampling, and in-person events.
+
+
+Participants were entered into a prize draw to incentivize their participation, and received a 10 dollar giftcard upon complemention of both the Health and VERITAS surveys. Those who contributed data through the smart phone app or the Sensedoc received an additional 10 dollar giftcard. 
+
+
+The Health Survey was completed from May 19, 2017 until January 1, 2018, by `r nrow(d)` participants. 
+
+
+
+#*Section 1: Transportation*
+##Q1: How many bicycles are kept in your household?{.tabset}
+###Adult bikes
+```{r}
+ggplot(d, aes(x = d$transp_bikes_adults)) + 
+  geom_histogram(binwidth = 1, fill="#76D24A", na.rm = TRUE) + 
+  xlab("Number of bicycles for adults") + 
+##break value set for displaying integer values, which requires chekcing max value; can omit to use default scale 
+  scale_x_continuous(breaks = c(5, 10, 15, 20)) 
+
+##print summary stats
+summary(d$transp_bikes_adults)
+```
+
+###Children bikes
+```{r}
+ggplot(d, aes(x = d$transp_bikes_children)) + 
+  geom_bar(fill="#76D24A", na.rm = TRUE) + xlab("Number of bicycles for children") + 
+  scale_x_continuous()
+
+summary(d$transp_bikes_children)
+```
+
+##Q2: On a scale of 1 to 5, with 1 being 'very safe' and 5 being 'very dangerous', overall, how safe do you think cycling is in your city? 
+```{r, warning = FALSE}
+#####PLOT DISTRIBUTION
+##create Q2 response frequency table and convert to data frame
+Q2 <- prop.table(table(factor(d$bike_safety, levels = 1:5)))*100
+Q2 <- as.data.frame(Q2)
+
+##create response variable for plotting
+Q2$response <- substring(row.names(Q2), 1)
+Q2$response <- revalue(as.factor(Q2$response), c("1" = "Very safe", "2" = "Somewhat safe", "3" = "Neither safe nor unsafe", "4" = "Somewhat dangerous", "5" = "Very dangerous"))
+
+##specify ggplot factor order for plot (default order is alphabetic)
+Q2$plot <- factor(Q2$response, Q2$response)
+
+##order responses as in Q2
+p <- ggplot(Q2, aes(x = response, y = Freq, fill = response)) + theme(axis.text.x = element_text(angle=90, vjust = .6))
+
+##get colors for plot (customizable, values can be specified from colorbrewer2.org, can also use scale fill palettes. See RColorBrewer documentation)
+#cols <- c("#1a9641", "#a6d96a", "#ffffbf", "#fdae61", "#d7191c")
+
+#create plot
+p + geom_bar(aes(x = plot), data = Q2, stat = "identity") +
+  scale_fill_manual(values = INTERACTPalette3) +
+  guides(fill=FALSE) +
+      ylab("Percent of total") +
+      xlab("Perception of bicycle risk") +
+      ggtitle("Overall, how safe do you think cycling is in your city?")
+
+#####CREATE ASSOCIATED TABLE  
+##summarize number of responses in each category
+Q2.tb <- as.factor(d$bike_safety)
+Q2.tb <- summary(Q2.tb)
+Q2.tb <- as.data.frame(Q2.tb)
+
+##create response variable for table 
+Q2.tb$Var1 <- substring(row.names(Q2.tb), 1)
+Q2.tb$response <- revalue(as.factor(Q2.tb$Var1), c("1" = "Very safe", "2" = "Somewhat safe", "3" = "Neither safe nor unsafe", "4" = "Somewhat dangerous", "5" = "Very dangerous"))
+
+##merge with frequency table from above
+plot.Q2 <- merge(Q2, Q2.tb, by = "response")
+
+plot.Q2 <- plot.Q2 %>% arrange(Var1.x)
+##drop intermediate columns
+plot.Q2 <- plot.Q2[-c(2, 4, 6)]
+
+plot.Q2 <- setcolorder(plot.Q2, c("response", "Q2.tb", "Freq"))
+
+##rename columns
+colnames(plot.Q2) <- c("Response", "N", "Proportion")
+
+##print table
+kable(plot.Q2) %>%   kable_styling(bootstrap_options = "striped", full_width = T, position = "left")
+
+
+```
+
+##Q3: How often do you typically travel by bicycle during each season?{.tabset}
+###fall
+```{r, results = FALSE}
+##create variables for weekly bicycling frequency
+
+d$bike_freq_a[d$bike_freq_a==-7] <- NA
+
+d$bike_fall <- round(d$bike_freq_a/13)
+d$bike_winter <- round(d$bike_freq_b/13)
+d$bike_spring <- round(d$bike_freq_c/13)
+d$bike_summer <- round(d$bike_freq_d/13)
+
+
+ggplot(d, aes(x = d$bike_fall)) + geom_histogram (na.rm = TRUE, binwidth = 1, fill="#FFA314") + xlab("Times in the fall")
+```
+
+```{r}
+fall <- prop.table(table(factor(d$bike_fall, levels = 0:7)))*100
+fall <- as.data.frame(fall)
+
+fall$response <- substring(row.names(fall), 1)
+fall$response <- revalue(as.factor(fall$response), c("1" = "0",  "2" = "1", "3" = "2", "4" = "3", "5" = "4", "6" = "5", "7" = "6", "8" = "7"))
+
+fall$plot <- factor(fall$response, fall$response)
+
+Q3a <- ggplot(fall, aes(x = response, y = Freq, fill = response)) + theme(axis.text.x  = element_text(angle=90, vjust=.6))
+Q3a + geom_bar(aes(x = plot), data = fall, stat = "identity") +
+  guides(fill = FALSE) +
+  scale_fill_brewer(values = "orange") +
+      ylab("Percent of total") +
+      xlab("Bicycling number of days per week") +
+      ggtitle("How often do you typically travel by bicycle during the fall?")
+
+
+
+
+summary(d$bike_fall)
+```
+
+###winter
+```{r}
+winter <- prop.table(table(factor(d$bike_winter, levels = 0:7)))*100
+winter <- as.data.frame(winter)
+
+winter$response <- substring(row.names(winter), 1)
+winter$response <- revalue(as.factor(winter$response), c("1" = "0",  "2" = "1", "3" = "2", "4" = "3", "5" = "4", "6" = "5", "7" = "6", "8" = "7"))
+
+winter$plot <- factor(winter$response, winter$response)
+
+Q3b <- ggplot(winter, aes(x = response, y = Freq, fill = response)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+Q3b  + geom_bar(aes(x = plot), data = winter, stat = "identity") +
+  guides(fill = FALSE) +
+  scale_fill_brewer(palette = "BuGn", direction=-1) +
+      ylab("Percent of total") +
+      xlab("Bicycling number of days per week") +
+      ggtitle("How often do you typically travel by bicycle during the winter?")
+
+summary(d$bike_winter)
+```
+
+###spring
+```{r}
+spring <- prop.table(table(factor(d$Q3_bike_spring, levels = 0:7)))*100
+spring <- as.data.frame(spring)
+
+spring$response <- substring(row.names(spring), 1)
+spring$response <- revalue(as.factor(spring$response), c("1" = "0",  "2" = "1", "3" = "2", "4" = "3", "5" = "4", "6" = "5", "7" = "6", "8" = "7"))
+
+spring$plot <- factor(spring$response, spring$response)
+
+Q3c <- ggplot(spring, aes(x = response, y = Freq, fill = response)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+Q3c + geom_bar(aes(x = plot), data = spring, stat = "identity") +
+  guides(fill = FALSE) +
+  scale_fill_brewer(palette = "BuGn", direction=-1) +
+      ylab("Percent of total") +
+      xlab("Bicycling number of days per week") +
+      ggtitle("How often do you typically travel by bicycle during the spring?")
+
+summary(d$Q3_bike_spring)
+```
+
+###summer
+```{r}
+summer <- prop.table(table(factor(d$Q3_bike_summer, levels = 0:7)))*100
+summer <- as.data.frame(summer)
+summer$response <- substring(row.names(summer), 1)
+summer$response <- revalue(as.factor(summer$response), c("1" = "0",  "2" = "1", "3" = "2", "4" = "3", "5" = "4", "6" = "5", "7" = "6", "8" = "7"))
+
+summer$plot <- factor(summer$response, summer$response)
+
+Q3d <- ggplot(summer, aes(x = response, y = Freq, fill = response)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+Q3d + geom_bar(aes(x = plot), data = summer, stat = "identity") +
+  guides(fill = FALSE) +
+  scale_fill_brewer(palette = "BuGn", direction=-1) +
+      ylab("Percent of total") +
+      xlab("Bicycling number of days per week") +
+      ggtitle("How often do you typically travel by bicycle during the summer?")
+
+summary(d$Q3_bike_summer)
+```
+
+##Q4: How often are your cycling trips made with children?
+```{r}
+bike.ch <- prop.table(table(factor(d$Q4_bike_children, levels = 1:4)))*100
+bike.ch <- as.data.frame(bike.ch)
+bike.ch$response <- substring(row.names(bike.ch), 1)
+bike.ch$response <- revalue(as.factor(bike.ch$response), c("1" = "Never", "2" = "Sometimes", "3" = "Often", "4" = "Always"))
+
+bike.ch$plot <- factor(bike.ch$response, bike.ch$response)
+
+cols <- c("#ef3b2c","#fdae61", "#a6d96a", "#1a9641")
+ch <- ggplot(bike.ch, aes(x = response, y = Freq, fill = response)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+  guides(fill = FALSE) +
+  scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Bicyle trips with children") +
+      ggtitle("How often are your cycling trips made with children?")
+
+ch + geom_bar(aes(x = plot), data = bike.ch, stat = "identity") 
+
+trips.ch <- as.factor(d$Q4_bike_children)
+trips.ch <- summary(trips.ch)
+trips.ch <- as.data.frame(trips.ch)
+trips.ch$Var1 <- substring(row.names(trips.ch), 1)
+trips.ch$response <- revalue(as.factor(trips.ch$Var1), c("1" = "Never", "2" = "Sometimes", "3" = "Often", "4" = "Always"))
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$trips.ch <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("4")
+nval.df$response <- c("Always")
+nval.df <- nval.df[-c(1)]
+
+trips.ch <- rbind(trips.ch, nval.df)
+
+
+plot.ch <- merge(bike.ch, trips.ch, by = "response")
+plot.ch <- plot.ch[-c(1:2, 6)]
+plot.ch <- setcolorder(plot.ch, c("plot", "trips.ch", "Freq"))
+plot.ch$order <- c(1, 4, 2, 3)
+plot.ch <- plot.ch %>% arrange(order)
+plot.ch <- plot.ch[-c(4)]
+
+colnames(plot.ch) <- c("Response", "N", "Proportion")
+
+kable(plot.ch)
+```
+
+##Q5: Do you currently use any of the following roads when you bike in Victoria?{.tabset}
+###Cook St or Fifth St
+```{r} 
+cook <- prop.table(table(factor(d$Q5_vicroads_a, levels = c("1", "2", "77"))))*100
+cook <- as.data.frame(cook)
+cook$response <- substring(row.names(cook), 1)
+cook$response <- revalue(as.factor(cook$response), c("1" = "Yes",  "2" = "No", "3" = "Don't know"))
+
+cook$plot <- factor(cook$response, cook$response)
+
+cols <- c("#31a354","#f03b20","grey","grey") 
+cook.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+
+cook.plot + geom_bar(aes(x = plot), data = cook, stat = "identity") 
+
+
+cook.tb <- as.factor(d$Q5_vicroads_a)
+cook.tb <- summary(cook.tb)
+cook.tb <- as.data.frame(cook.tb)
+cook.tb$Var1 <- substring(row.names(cook.tb), 1)
+cook.tb$response <- revalue(as.factor(cook.tb$Var1), c("1" = "Yes", "2" = "No", "77" = "Don't know"))
+
+plot.cook <- merge(cook, cook.tb, by = "response")
+plot.cook <- plot.cook[-c(2, 4, 6)]
+plot.cook <- setcolorder(plot.cook, c("response", "cook.tb", "Freq"))
+plot.cook$order <- c(2, 1)
+plot.cook <- plot.cook %>% arrange(order)
+plot.cook <- plot.cook[-c(4)]
+colnames(plot.cook) <- c("Response", "N", "Proportion")
+
+kable(plot.cook)
+```
+
+###Fairfield Rd or Humboldt St
+```{r} 
+ffield <- prop.table(table(factor(d$Q5_vicroads_b, levels = c("1", "2", "77"))))*100
+ffield <- as.data.frame(ffield)
+ffield$response <- substring(row.names(ffield), 1)
+ffield$response <- revalue(as.factor(ffield$response), c("1" = "Yes",  "2" = "No", "3" = "Don't know"))
+
+ffield$plot <- factor(ffield$response, ffield$response)
+
+cols <- c("#31a354","#f03b20","grey","grey") 
+ffield.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+
+ffield.plot + geom_bar(aes(x = plot), data = ffield, stat = "identity")
+      
+ffield.tb <- as.factor(d$Q5_vicroads_b)
+ffield.tb <- summary(ffield.tb)
+ffield.tb <- as.data.frame(ffield.tb)
+ffield.tb$Var1 <- substring(row.names(ffield.tb), 1)
+ffield.tb$response <- revalue(as.factor(ffield.tb$Var1), c("1" = "Yes", "2" = "No", "77" = "Don't know"))
+
+plot.ffield <- merge(ffield, ffield.tb, by = "response")
+plot.ffield <- plot.ffield[-c(2, 4, 6)]
+plot.ffield <- setcolorder(plot.ffield, c("response", "ffield.tb", "Freq"))
+plot.ffield$order <- c(3, 2, 1)
+plot.ffield <- plot.ffield %>% arrange(order)
+plot.ffield <- plot.ffield[-c(4)]
+colnames(plot.ffield) <- c("Response", "N", "Proportion")
+
+kable(plot.ffield)
+```
+
+###Fort St
+```{r} 
+fort <- prop.table(table(factor(d$Q5_vicroads_c, levels = c("1", "2", "77"))))*100
+fort <- as.data.frame(fort)
+fort$response <- substring(row.names(fort), 1)
+fort$response <- revalue(as.factor(fort$response), c("1" = "Yes",  "2" = "No", "3" = "Don't know"))
+
+fort$plot <- factor(fort$response, fort$response)
+
+cols <- c("#31a354","#f03b20","grey","grey") 
+fort.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+
+fort.plot + geom_bar(aes(x = plot), data = fort, stat = "identity")
+      
+fort.tb <- as.factor(d$Q5_vicroads_c)
+fort.tb <- summary(fort.tb)
+fort.tb <- as.data.frame(fort.tb)
+fort.tb$Var1 <- substring(row.names(fort.tb), 1)
+
+##intermediate step to insert response values where zero respondents chose that answer
+nval.df <- c("0") 
+nval.df <- as.data.frame(nval.df)
+nval.df$fort.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c( "77")
+nval.df <- nval.df[-c(1)]
+
+##coerce inserted values into table
+fort.tb <- rbind(fort.tb, nval.df)
+fort.tb$response <- revalue(as.factor(fort.tb$Var1), c("1" = "Yes", "2" = "No", "77" = "Don't know"))
+
+plot.fort <- merge(fort, fort.tb, by = "response")
+plot.fort <- plot.fort[-c(2, 4, 6)]
+plot.fort <- setcolorder(plot.fort, c("response", "fort.tb", "Freq"))
+plot.fort$order <- c(3, 2, 1)
+plot.fort <- plot.fort %>% arrange(order)
+plot.fort <- plot.fort[-c(4)]
+colnames(plot.fort) <- c("Response", "N", "Proportion")
+
+kable(plot.fort)
+```
+
+###Government St
+```{r} 
+gvt <- prop.table(table(factor(d$Q5_vicroads_d, levels = c("1", "2", "77"))))*100
+gvt <- as.data.frame(gvt)
+gvt$response <- substring(row.names(gvt), 1)
+gvt$response <- revalue(as.factor(gvt$response), c("1" = "Yes",  "2" = "No", "3" = "Don't know"))
+
+gvt$plot <- factor(gvt$response, gvt$response)
+
+cols <- c("#31a354","#f03b20","grey","grey") 
+gvt.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+gvt.plot + geom_bar(aes(x = plot), data = gvt, stat = "identity") 
+      
+gvt.tb <- as.factor(d$Q5_vicroads_d)
+gvt.tb <- summary(gvt.tb)
+gvt.tb <- as.data.frame(gvt.tb)
+gvt.tb$Var1 <- substring(row.names(gvt.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$gvt.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c( "77")
+nval.df <- nval.df[-c(1)]
+gvt.tb <- rbind(gvt.tb, nval.df)
+gvt.tb$response <- revalue(as.factor(gvt.tb$Var1), c("1" = "Yes", "2" = "No", "77" = "Don't know"))
+
+plot.gvt <- merge(gvt, gvt.tb, by = "response")
+plot.gvt <- plot.gvt[-c(2, 4, 6)]
+plot.gvt <- setcolorder(plot.gvt, c("response", "gvt.tb", "Freq"))
+plot.gvt$order <- c(3, 2, 1)
+plot.gvt <- plot.gvt %>% arrange(order)
+plot.gvt <- plot.gvt[-c(4)]
+colnames(plot.gvt) <- c("Response", "N", "Proportion")
+
+kable(plot.gvt)
+```
+
+###Haultain St or Kings Rd
+```{r} 
+haultain <- prop.table(table(factor(d$Q5_vicroads_e, levels = c("1", "2", "77"))))*100
+haultain <- as.data.frame(haultain)
+haultain$response <- substring(row.names(haultain), 1)
+haultain$response <- revalue(as.factor(haultain$response), c("1" = "Yes",  "2" = "No", "3" = "Don't know"))
+
+haultain$plot <- factor(haultain$response, haultain$response)
+
+cols <- c("#31a354","#f03b20","grey","grey") 
+haultain.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+haultain.plot + geom_bar(aes(x = plot), data = haultain, stat = "identity") 
+      
+haultain.tb <- as.factor(d$Q5_vicroads_e)
+haultain.tb <- summary(haultain.tb)
+haultain.tb <- as.data.frame(haultain.tb)
+haultain.tb$Var1 <- substring(row.names(haultain.tb), 1)
+haultain.tb$response <- revalue(as.factor(haultain.tb$Var1), c("1" = "Yes", "2" = "No", "77" = "Don't know"))
+
+plot.haultain <- merge(haultain, haultain.tb, by = "response")
+plot.haultain <- plot.haultain[-c(2, 4, 6)]
+plot.haultain <- setcolorder(plot.haultain, c("response", "haultain.tb", "Freq"))
+plot.haultain$order <- c(3, 2, 1)
+plot.haultain <- plot.haultain %>% arrange(order)
+plot.haultain <- plot.haultain[-c(4)]
+colnames(plot.haultain) <- c("Response", "N", "Proportion")
+
+kable(plot.haultain)
+```
+
+###Pandora Ave
+```{r} 
+pand <- prop.table(table(factor(d$Q5_vicroads_f, levels = c("1", "2", "77"))))*100
+pand <- as.data.frame(pand)
+pand$response <- substring(row.names(pand), 1)
+pand$response <- revalue(as.factor(pand$response), c("1" = "Yes",  "2" = "No", "3" = "Don't know"))
+
+pand$plot <- factor(pand$response, pand$response)
+
+cols <- c("#31a354","#f03b20","grey","grey") 
+pand.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+pand.plot + geom_bar(aes(x = plot), data = pand, stat = "identity") 
+      
+pand.tb <- as.factor(d$Q5_vicroads_f)
+pand.tb <- summary(pand.tb)
+pand.tb <- as.data.frame(pand.tb)
+pand.tb$Var1 <- substring(row.names(pand.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$pand.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c( "77")
+nval.df <- nval.df[-c(1)]
+pand.tb <- rbind(pand.tb, nval.df)
+pand.tb$response <- revalue(as.factor(pand.tb$Var1), c("1" = "Yes", "2" = "No", "77" = "Don't know"))
+
+plot.pand <- merge(pand, pand.tb, by = "response")
+plot.pand <- plot.pand[-c(2, 4, 6)]
+plot.pand <- setcolorder(plot.pand, c("response", "pand.tb", "Freq"))
+plot.pand$order <- c(3, 2, 1)
+plot.pand <- plot.pand %>% arrange(order)
+plot.pand <- plot.pand[-c(4)]
+colnames(plot.pand) <- c("Response", "N", "Proportion")
+
+kable(plot.pand)
+```
+
+###Shelbourne St or Begbie St
+```{r} 
+shelb <- prop.table(table(factor(d$Q5_vicroads_g, levels = c("1", "2", "77"))))*100
+shelb <- as.data.frame(shelb)
+shelb$response <- substring(row.names(shelb), 1)
+shelb$response <- revalue(as.factor(shelb$response), c("1" = "Yes",  "2" = "No", "3" = "Don't know"))
+
+shelb$plot <- factor(shelb$response, shelb$response)
+
+cols <- c("#31a354","#f03b20","grey","grey") 
+shelb.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+shelb.plot + geom_bar(aes(x = plot), data = shelb, stat = "identity") 
+      
+shelb.tb <- as.factor(d$Q5_vicroads_g)
+shelb.tb <- summary(shelb.tb)
+shelb.tb <- as.data.frame(shelb.tb)
+shelb.tb$Var1 <- substring(row.names(shelb.tb), 1)
+shelb.tb$response <- revalue(as.factor(shelb.tb$Var1), c("1" = "Yes", "2" = "No", "77" = "Don't know"))
+
+plot.shelb <- merge(shelb, shelb.tb, by = "response")
+plot.shelb <- plot.shelb[-c(2, 4, 6)]
+plot.shelb <- setcolorder(plot.shelb, c("response", "shelb.tb", "Freq"))
+plot.shelb$order <- c(3, 2, 1)
+plot.shelb <- plot.shelb %>% arrange(order)
+plot.shelb <- plot.shelb[-c(4)]
+colnames(plot.shelb) <- c("Response", "N", "Proportion")
+
+kable(plot.shelb)
+```
+
+###Harbour Rd, Wharf St or Belville St
+```{r} 
+bellv <- prop.table(table(factor(d$Q5_vicroads_h, levels = c("1", "2", "77"))))*100
+bellv <- as.data.frame(bellv)
+bellv$response <- substring(row.names(bellv), 1)
+bellv$response <- revalue(as.factor(bellv$response), c("1" = "Yes",  "2" = "No", "3" = "Don't know"))
+
+bellv$plot <- factor(bellv$response, bellv$response)
+
+cols <- c("#31a354","#f03b20","grey","grey") 
+bellv.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+bellv.plot + geom_bar(aes(x = plot), data = bellv, stat = "identity") 
+      
+bellv.tb <- as.factor(d$Q5_vicroads_h)
+bellv.tb <- summary(bellv.tb)
+bellv.tb <- as.data.frame(bellv.tb)
+bellv.tb$Var1 <- substring(row.names(bellv.tb), 1)
+bellv.tb$response <- revalue(as.factor(bellv.tb$Var1), c("1" = "Yes", "2" = "No", "77" = "Don't know"))
+
+plot.bellv <- merge(bellv, bellv.tb, by = "response")
+plot.bellv <- plot.bellv[-c(2, 4, 6)]
+plot.bellv <- setcolorder(plot.bellv, c("response", "bellv.tb", "Freq"))
+plot.bellv$order <- c(3, 2, 1)
+plot.bellv <- plot.bellv %>% arrange(order)
+plot.bellv <- plot.bellv[-c(4)]
+colnames(plot.bellv) <- c("Response", "N", "Proportion")
+
+kable(plot.bellv)
+```
+
+###Galloping Goose or the E&N Trail
+```{r} 
+goose <- prop.table(table(factor(d$Q5_vicroads_i, levels = c("1", "2", "77"), exclude = NULL)))*100
+goose <- as.data.frame(goose)
+goose$response <- substring(row.names(goose), 1)
+goose$response <- revalue(as.factor(goose$response), c("1" = "Yes",  "2" = "No", "3" = "Don't know"))
+
+goose$plot <- factor(goose$response, goose$response)
+
+cols <- c("#31a354","#f03b20","grey","grey") 
+goose.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+goose.plot + geom_bar(aes(x = plot), data = goose, stat = "identity") 
+      
+goose.tb <- as.factor(d$Q5_vicroads_i)
+goose.tb <- summary(goose.tb)
+goose.tb <- as.data.frame(goose.tb)
+goose.tb$Var1 <- substring(row.names(goose.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$goose.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c( "77")
+nval.df <- nval.df[-c(1)]
+goose.tb <- rbind(goose.tb, nval.df)
+goose.tb$response <- revalue(as.factor(goose.tb$Var1), c("1" = "Yes", "2" = "No", "77" = "Don't know"))
+
+plot.goose <- merge(goose, goose.tb, by = "response")
+plot.goose <- plot.goose[-c(2, 4, 6)]
+plot.goose <- setcolorder(plot.goose, c("response", "goose.tb", "Freq"))
+plot.goose$order <- c(3, 2, 1)
+plot.goose <- plot.goose %>% arrange(order)
+plot.goose <- plot.goose[-c(4)]
+colnames(plot.goose) <- c("Response", "N", "Proportion")
+
+kable(plot.goose)
+```
+
+##Q6: How much would you agree with the following statement: "I would like to travel by bicycle more than I do now"?
+```{r}
+bike.more <- prop.table(table(factor(d$Q6_bike_more, levels = c("1", "2", "3", "4", "77"))))*100
+bike.more <- as.data.frame(bike.more)
+bike.more$group <- substring(row.names(bike.more), 1)
+bike.more$group <- revalue(as.factor(bike.more$group), c("1" = "Strongly agree", "2" = "Somewhat agree", "3" = "Somewhat disagree", "4" = "Strongly disagree", "5" = "Don't know"))
+
+bike.more$plot <- factor(bike.more$group, bike.more$group)
+
+more <- ggplot(bike.more, aes(x = group, y = Freq, fill = group)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+cols <- c("#1a9641", "#a6d96a", "#fdae61", "#d7191c", "grey")
+more + geom_bar(aes(x = plot), data = bike.more, stat = "identity") +
+  guides(fill = FALSE) +
+  scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Bicyle more") +
+      ggtitle("I would like to travel by bicycle more than I do now")
+
+more.tb <- as.factor(d$Q6_bike_more)
+more.tb <- summary(more.tb)
+more.tb <- as.data.frame(more.tb)
+more.tb$Var1 <- substring(row.names(more.tb), 1)
+more.tb$group <- revalue(as.factor(more.tb$Var1), c("1" = "Strongly agree", "2" = "Somewhat agree", "3" = "Somewhat disagree", "4" = "Strongly disagree", "77" = "Don't know"))
+
+more.plot <- merge(bike.more, more.tb, by = "group")
+more.plot <- more.plot[-c(1:2, 6)]
+more.plot <- setcolorder(more.plot, c("plot", "more.tb", "Freq"))
+more.plot$order <- c(5, 2, 3, 1, 4)
+more.plot <- more.plot %>% arrange(order)
+more.plot <- more.plot[-c(4)]
+colnames(more.plot) <- c("Response", "N", "Proportion")
+
+kable(more.plot)
+```
+
+##Q7: How comfortable would you feel biking in the following places?{.tabset}
+###A path or trail that is physically separate from the street
+```{r}
+path <- prop.table(table(factor(d$Q7_bike_comf_a, levels = c("1", "2", "3", "4", "77"))))*100
+path <- as.data.frame(path)
+path$response <- substring(row.names(path), 1)
+path$response <- revalue(as.factor(path$response), c("1" = "Very uncomfortable",  "2" = "Somewhat uncomfortable", "3" = "Somewhat comfortable", "4" = "Very comfortable", "5" = "Don't know"))
+
+path$plot <- factor(path$response, path$response)
+
+cols <- c("#d7191c","#fdae61", "#a6d96a", "#1a9641", "grey")
+path.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+path.plot + geom_bar(aes(x = plot), data = path, stat = "identity") 
+      
+path.tb <- as.factor(d$Q7_bike_comf_a)
+path.tb <- summary(path.tb)
+path.tb <- as.data.frame(path.tb)
+path.tb$Var1 <- substring(row.names(path.tb), 1)
+
+nval.df <- c("0", "0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$path.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("2", "5")
+nval.df <- nval.df[-c(1)]
+path.tb <- rbind(path.tb, nval.df)
+path.tb$response <- revalue(as.factor(path.tb$Var1), c("1" = "Very uncomfortable", "2" = "Somewhat uncomfortable", "3" = "Somewhat comfortable", "4" = "Very comfortable", "5" = "Don't know"))
+
+plot.path <- merge(path, path.tb, by = "response")
+plot.path <- plot.path[-c(2, 4, 6)]
+plot.path <- setcolorder(plot.path, c("response", "path.tb", "Freq"))
+plot.path$order <- c(5, 3, 2, 4, 1)
+plot.path <- plot.path %>% arrange(order)
+plot.path <- plot.path[-c(4)]
+colnames(plot.path) <- c("Response", "N", "Proportion")
+
+kable(plot.path)
+```
+
+###A quiet, residential street with traffic speeds of 30-40 km per hour
+```{r}
+res <- prop.table(table(factor(d$Q7_bike_comf_b, levels = c("1", "2", "3", "4", "77"))))*100
+res <- as.data.frame(res)
+res$response <- substring(row.names(res), 1)
+res$response <- revalue(as.factor(res$response), c("1" = "Very uncomfortable",  "2" = "Somewhat uncomfortable", "3" = "Somewhat comfortable", "4" = "Very comfortable", "5" = "Don't know"))
+
+res$plot <- factor(res$response, res$response)
+
+cols <- c("#d7191c","#fdae61", "#a6d96a", "#1a9641", "grey")
+res.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+res.plot + geom_bar(aes(x = plot), data = res, stat = "identity") 
+      
+res.tb <- as.factor(d$Q7_bike_comf_b)
+res.tb <- summary(res.tb)
+res.tb <- as.data.frame(res.tb)
+res.tb$Var1 <- substring(row.names(res.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$res.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c( "5")
+nval.df <- nval.df[-c(1)]
+res.tb <- rbind(res.tb, nval.df)
+res.tb$response <- revalue(as.factor(res.tb$Var1), c("1" = "Very uncomfortable", "2" = "Somewhat uncomfortable", "3" = "Somewhat comfortable", "4" = "Very comfortable", "5" = "Don't know"))
+
+plot.res <- merge(res, res.tb, by = "response")
+plot.res <- plot.res[-c(2, 4, 6)]
+plot.res <- setcolorder(plot.res, c("response", "res.tb", "Freq"))
+plot.res$order <- c(5, 3, 2, 4, 1)
+plot.res <- plot.res %>% arrange(order)
+plot.res <- plot.res[-c(4)]
+colnames(plot.res) <- c("Response", "N", "Proportion")
+
+kable(plot.res)
+```
+
+###A quiet residential street, with a 30 km per hour speed limit, bicycle route markings, wide speed bumps, and other things that slow down and discourage car traffic
+```{r}
+bkwy <- prop.table(table(factor(d$Q7_bike_comf_c, levels = c("1", "2", "3", "4", "77"))))*100
+bkwy <- as.data.frame(bkwy)
+bkwy$response <- substring(row.names(bkwy), 1)
+bkwy$response <- revalue(as.factor(bkwy$response), c("1" = "Very uncomfortable",  "2" = "Somewhat uncomfortable", "3" = "Somewhat comfortable", "4" = "Very comfortable", "5" = "Don't know"))
+
+bkwy$plot <- factor(bkwy$response, bkwy$response)
+
+cols <- c("#d7191c","#fdae61", "#a6d96a", "#1a9641", "grey")
+bkwy.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+bkwy.plot + geom_bar(aes(x = plot), data = bkwy, stat = "identity") 
+      
+bkwy.tb <- as.factor(d$Q7_bike_comf_c)
+bkwy.tb <- summary(bkwy.tb)
+bkwy.tb <- as.data.frame(bkwy.tb)
+bkwy.tb$Var1 <- substring(row.names(bkwy.tb), 1)
+bkwy.tb$response <- revalue(as.factor(bkwy.tb$Var1), c("1" = "Very uncomfortable", "2" = "Somewhat uncomfortable", "3" = "Somewhat comfortable", "4" = "Very comfortable", "77" = "Don't know"))
+
+
+nval.df <- c("0") 
+nval.df <- as.data.frame(nval.df)
+nval.df$bjwy.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c( "3")
+nval.df <- nval.df[-c(1)]
+
+plot.bkwy <- merge(bkwy, bkwy.tb, by = "response")
+plot.bkwy <- plot.bkwy[-c(2, 4, 6)]
+plot.bkwy <- setcolorder(plot.bkwy, c("response", "bkwy.tb", "Freq"))
+plot.bkwy$order <- c(5, 3, 2, 4, 1)
+plot.bkwy <- plot.bkwy %>% arrange(order)
+plot.bkwy <- plot.bkwy[-c(4)]
+colnames(plot.bkwy) <- c("Response", "N", "Proportion")
+
+kable(plot.bkwy)
+```
+
+###A major urban or suburban street with four lanes, on-street parking, traffic speeds of 50-60 km per hour, and no bike lane
+```{r}
+major <- prop.table(table(factor(d$Q7_bike_comf_d, levels = c("1", "2", "3", "4", "77"))))*100
+major <- as.data.frame(major)
+major$response <- substring(row.names(major), 1)
+major$response <- revalue(as.factor(major$response), c("1" = "Very uncomfortable",  "2" = "Somewhat uncomfortable", "3" = "Somewhat comfortable", "4" = "Very comfortable", "5" = "Don't know"))
+
+major$plot <- factor(major$response, major$response)
+
+cols <- c("#d7191c","#fdae61", "#a6d96a", "#1a9641", "grey")
+major.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+major.plot + geom_bar(aes(x = plot), data = major, stat = "identity") 
+      
+major.tb <- as.factor(d$Q7_bike_comf_d)
+major.tb <- summary(major.tb)
+major.tb <- as.data.frame(major.tb)
+major.tb$Var1 <- substring(row.names(major.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$major.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c( "77")
+nval.df <- nval.df[-c(1)]
+major.tb <- rbind(major.tb, nval.df)
+major.tb$response <- revalue(as.factor(major.tb$Var1), c("1" = "Very uncomfortable", "2" = "Somewhat uncomfortable", "3" = "Somewhat comfortable", "4" = "Very comfortable", "77" = "Don't know"))
+
+plot.major <- merge(major, major.tb, by = "response")
+plot.major <- plot.major[-c(2, 4, 6)]
+plot.major <- setcolorder(plot.major, c("response", "major.tb", "Freq"))
+plot.major$order <- c(5, 3, 2, 4, 1)
+plot.major <- plot.major %>% arrange(order)
+plot.major <- plot.major[-c(4)]
+colnames(plot.major) <- c("Response", "N", "Proportion")
+
+kable(plot.major)
+```
+
+###A major urban or suburban street with four lanes, on-street parking, traffic speeds of 50-60 km per hour, but with a striped bike lane added
+```{r}
+lane <- prop.table(table(factor(d$Q7_bike_comf_e, levels = c("1", "2", "3", "4", "77"))))*100
+lane <- as.data.frame(lane)
+lane$response <- substring(row.names(lane), 1)
+lane$response <- revalue(as.factor(lane$response), c("1" = "Very uncomfortable",  "2" = "Somewhat uncomfortable", "3" = "Somewhat comfortable", "4" = "Very comfortable", "5" = "Don't know"))
+
+lane$plot <- factor(lane$response, lane$response)
+
+cols <- c("#d7191c","#fdae61", "#a6d96a", "#1a9641", "grey")
+lane.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+lane.plot + geom_bar(aes(x = plot), data = lane, stat = "identity") 
+      
+lane.tb <- as.factor(d$Q7_bike_comf_e)
+lane.tb <- summary(lane.tb)
+lane.tb <- as.data.frame(lane.tb)
+lane.tb$Var1 <- substring(row.names(lane.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$lane.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c( "77")
+nval.df <- nval.df[-c(1)]
+lane.tb <- rbind(lane.tb, nval.df)
+lane.tb$response <- revalue(as.factor(lane.tb$Var1), c("1" = "Very uncomfortable", "2" = "Somewhat uncomfortable", "3" = "Somewhat comfortable", "4" = "Very comfortable", "77" = "Don't know"))
+
+plot.lane <- merge(lane, lane.tb, by = "response")
+plot.lane <- plot.lane[-c(2, 4, 6)]
+plot.lane <- setcolorder(plot.lane, c("response", "lane.tb", "Freq"))
+plot.lane$order <- c(5, 3, 2, 4, 1)
+plot.lane <- plot.lane %>% arrange(order)
+plot.lane <- plot.lane[-c(4)]
+colnames(plot.lane) <- c("Response", "N", "Proportion")
+
+kable(plot.lane)
+```
+
+###A major urban or suburban street with four lanes, on-street parking, traffic speeds of 50-60 km per hour, but with a wide bike lane physically separated from traffic by a raised curb, planters, or parked cars
+```{r}
+track <- prop.table(table(factor(d$Q7_bike_comf_f, levels = c("1", "2", "3", "4", "77"))))*100
+track <- as.data.frame(track)
+track$response <- substring(row.names(track), 1)
+track$response <- revalue(as.factor(track$response), c("1" = "Very uncomfortable",  "2" = "Somewhat uncomfortable", "3" = "Somewhat comfortable", "4" = "Very comfortable", "5" = "Don't know"))
+
+track$plot <- factor(track$response, track$response)
+
+cols <- c("#d7191c","#fdae61", "#a6d96a", "#1a9641", "grey")
+track.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+track.plot + geom_bar(aes(x = plot), data = track, stat = "identity") 
+      
+track.tb <- as.factor(d$Q7_bike_comf_f)
+track.tb <- summary(track.tb)
+track.tb <- as.data.frame(track.tb)
+track.tb$Var1 <- substring(row.names(track.tb), 1)
+track.tb$response <- revalue(as.factor(track.tb$Var1), c("1" = "Very uncomfortable", "2" = "Somewhat uncomfortable", "3" = "Somewhat comfortable", "4" = "Very comfortable", "77" = "Don't know"))
+
+plot.track <- merge(track, track.tb, by = "response")
+plot.track <- plot.track[-c(2, 4, 6)]
+plot.track <- setcolorder(plot.track, c("response", "track.tb", "Freq"))
+plot.track$order <- c(5, 3, 2, 4, 1)
+plot.track <- plot.track %>% arrange(order)
+plot.track <- plot.track[-c(4)]
+colnames(plot.track) <- c("Response", "N", "Proportion")
+
+kable(plot.track)
+```
+
+##Q8: Have you ever heard of the All Ages and Abilities (AAA) Network (formerly known as Biketoria)?
+```{r} 
+AAA <- prop.table(table(factor(d$Q8aaa_familiarity, levels = c("1", "2"))))*100
+AAA <- as.data.frame(AAA)
+AAA$response <- substring(row.names(AAA), 1)
+AAA$response <- revalue(as.factor(AAA$response), c("1" = "Yes",  "2" = "No"))
+
+AAA$plot <- factor(AAA$response, AAA$response)
+
+cols <- c("#31a354","#f03b20", "grey")
+AAA.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+AAA.plot + geom_bar(aes(x = plot), data = AAA, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+AAA.tb <- as.factor(d$Q8aaa_familiarity)
+AAA.tb <- summary(AAA.tb)
+AAA.tb <- as.data.frame(AAA.tb)
+AAA.tb$Var1 <- substring(row.names(AAA.tb), 1)
+AAA.tb$response <- revalue(as.factor(AAA.tb$Var1), c("1" = "Yes", "2" = "No"))
+
+plot.AAA <- merge(AAA, AAA.tb, by = "response")
+plot.AAA <- plot.AAA[-c(2, 4, 6)]
+plot.AAA <- setcolorder(plot.AAA, c("response", "AAA.tb", "Freq"))
+plot.AAA$order <- c(2, 1)
+plot.AAA <- plot.AAA %>% arrange(order)
+plot.AAA <- plot.AAA[-c(4)]
+colnames(plot.AAA) <- c("Response", "N", "Proportion")
+
+kable(plot.AAA)
+```
+
+##Q9: Do you think that the All Ages and Abilities (AAA) Network is a good or bad idea for Victoria? It is a:
+```{r}
+aaa.idea <- prop.table(table(factor(d$Q9_aaa_idea, levels = c("1", "2", "3", "4")), exclude=NULL))*100
+aaa.idea <- as.data.frame(aaa.idea)
+aaa.idea$response <- substring(row.names(aaa.idea), 1)
+aaa.idea$response <- revalue(as.factor(aaa.idea$response), c("1" = "Very good idea",  "2" = "Somewhat good idea", "3" = "Somewhat bad idea", "4" = "Very bad idea", "5" = "Don't know"))
+
+aaa.idea$plot <- factor(aaa.idea$response, aaa.idea$response)
+
+cols <- c("#1a9641", "#a6d96a", "#fdae61", "#d7191c", "grey")
+aaa.idea.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+aaa.idea.plot + geom_bar(aes(x = plot), data = aaa.idea, stat = "identity") 
+      
+aaa.idea.tb <- as.factor(d$Q9_aaa_idea)
+aaa.idea.tb <- summary(aaa.idea.tb)
+aaa.idea.tb <- as.data.frame(aaa.idea.tb)
+aaa.idea.tb$Var1 <- substring(row.names(aaa.idea.tb), 1)
+aaa.idea.tb$response <- revalue(as.factor(aaa.idea.tb$Var1), c("1" = "Very good idea",  "2" = "Somewhat good idea", "3" = "Somewhat bad idea", "4" = "Very bad idea", "77" = "Don't know"))
+
+plot.aaa.idea <- merge(aaa.idea, aaa.idea.tb, by = "response")
+plot.aaa.idea <- plot.aaa.idea[-c(2, 4, 6)]
+plot.aaa.idea <- setcolorder(plot.aaa.idea, c("response", "aaa.idea.tb", "Freq"))
+plot.aaa.idea$order <- c(5, 3, 2, 4, 1)
+plot.aaa.idea <- plot.aaa.idea %>% arrange(order)
+plot.aaa.idea <- plot.aaa.idea[-c(4)]
+colnames(plot.aaa.idea) <- c("Response", "N", "Proportion")
+
+kable(plot.aaa.idea)
+```
+
+##Q10: Will you likely cycle more in the future once the All Ages and Abilities (AAA) Network is built?
+```{r} 
+bike.more <- prop.table(table(factor(d$Q10_aaa_bike_more, levels = c("1", "2"))))*100
+bike.more <- as.data.frame(bike.more)
+bike.more$response <- substring(row.names(bike.more), 1)
+bike.more$response <- revalue(as.factor(bike.more$response), c("1" = "Yes",  "2" = "No"))
+
+bike.more$plot <- factor(bike.more$response, bike.more$response)
+
+cols <- c("#31a354","#f03b20", "grey") 
+bike.more.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+bike.more.plot + geom_bar(aes(x = plot), data = bike.more, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+bike.more.tb <- as.factor(d$Q10_aaa_bike_more)
+bike.more.tb <- summary(bike.more.tb)
+bike.more.tb <- as.data.frame(bike.more.tb)
+bike.more.tb$Var1 <- substring(row.names(bike.more.tb), 1)
+bike.more.tb$response <- revalue(as.factor(bike.more.tb$Var1), c("1" = "Yes", "2" = "No"))
+
+plot.bike.more <- merge(bike.more, bike.more.tb, by = "response")
+plot.bike.more <- plot.bike.more[-c(2, 4, 6)]
+plot.bike.more <- setcolorder(plot.bike.more, c("response", "bike.more.tb", "Freq"))
+plot.bike.more$order <- c(2, 1)
+plot.bike.more <- plot.bike.more %>% arrange(order)
+plot.bike.more <- plot.bike.more[-c(4)]
+colnames(plot.bike.more) <- c("Response", "N", "Proportion")
+
+kable(plot.bike.more)
+```
+
+##Q11: Do you currently have a valid driver's license?
+```{r} 
+license <- prop.table(table(factor(d$Q11_license, levels = c("1", "2"))))*100
+license <- as.data.frame(license)
+license$response <- substring(row.names(license), 1)
+license$response <- revalue(as.factor(license$response), c("1" = "Yes",  "2" = "No"))
+
+license$plot <- factor(license$response, license$response)
+
+cols <- c("#31a354","#f03b20", "grey") 
+license.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+license.plot + geom_bar(aes(x = plot), data = license, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+license.tb <- as.factor(d$Q11_license)
+license.tb <- summary(license.tb)
+license.tb <- as.data.frame(license.tb)
+license.tb$Var1 <- substring(row.names(license.tb), 1)
+license.tb$response <- revalue(as.factor(license.tb$Var1), c("1" = "Yes", "2" = "No"))
+
+plot.license <- merge(license, license.tb, by = "response")
+plot.license <- plot.license[-c(2, 4, 6)]
+plot.license <- setcolorder(plot.license, c("response", "license.tb", "Freq"))
+plot.license$order <- c(2, 1)
+plot.license <- plot.license %>% arrange(order)
+plot.license <- plot.license[-c(4)]
+colnames(plot.license) <- c("Response", "N", "Proportion")
+
+kable(plot.license)
+```
+
+##Q12: Do you have access to a car?
+```{r} 
+access <- prop.table(table(factor(d$Q12_car_access, levels = c("1", "2")), exclude=NULL))*100
+access <- as.data.frame(access)
+access$response <- substring(row.names(access), 1)
+access$response <- revalue(as.factor(access$response), c("1" = "Yes",  "2" = "No", "3" = "NA"))
+
+access$plot <- factor(access$response, access$response)
+
+cols <- c("#31a354","#f03b20", "grey")
+access.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+access.plot + geom_bar(aes(x = plot), data = access, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+access.tb <- as.factor(d$Q12_car_access)
+access.tb <- summary(access.tb)
+access.tb <- as.data.frame(access.tb)
+access.tb$Var1 <- substring(row.names(access.tb), 1)
+access.tb$response <- revalue(as.factor(access.tb$Var1), c("1" = "Yes", "2" = "No", "NA's" = "NA"))
+
+plot.access <- merge(access, access.tb, by = "response")
+plot.access <- plot.access[-c(2, 4, 6)]
+plot.access <- setcolorder(plot.access, c("response", "access.tb", "Freq"))
+plot.access$order <- c(3, 2, 1)
+plot.access <- plot.access %>% arrange(order)
+plot.access <- plot.access[-c(4)]
+colnames(plot.access) <- c("Response", "N", "Proportion")
+
+kable(plot.access)
+```
+
+##Q13: How many cars, trucks, or vans are kept in your household?
+```{r} 
+ggplot(d, aes(x = d$Q13_cars_household)) + geom_bar(na.rm = TRUE) + xlab("Number of cars, trucks or vans in household")
+summary(d$Q13_cars_household)
+```
+
+##Q14: How much do you enjoy using each transportation mode?{.tabset}
+###Walking
+```{r}
+pref.walk <- prop.table(table(factor(d$Q14_preferred_mode_a, levels = c("1", "2", "3", "4", "5"))))*100
+pref.walk <- as.data.frame(pref.walk)
+pref.walk$response <- substring(row.names(pref.walk), 1)
+pref.walk$response <- revalue(as.factor(pref.walk$response), c("1" = "A lot", "4" = "Not at all", "5" = "Not applicable"))
+
+pref.walk$plot <- factor(pref.walk$response, pref.walk$response)
+
+cols <- c("#1a9641", "#a6d96a", "#fdae61", "#d7191c", "grey")
+pref.walk.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+pref.walk.plot + geom_bar(aes(x = plot), data = pref.walk, stat = "identity") 
+      
+pref.walk.tb <- as.factor(d$Q14_preferred_mode_a)
+pref.walk.tb <- summary(pref.walk.tb)
+pref.walk.tb <- as.data.frame(pref.walk.tb)
+pref.walk.tb$Var1 <- substring(row.names(pref.walk.tb), 1)
+pref.walk.tb$response <- revalue(as.factor(pref.walk.tb$Var1), c("1" = "A lot",  "2" = "2", "3" = "3", "4" = "Not at all", "5" = "Not applicable"))
+
+plot.pref.walk <- merge(pref.walk, pref.walk.tb, by = "response")
+plot.pref.walk <- plot.pref.walk[-c(2, 4, 6)]
+plot.pref.walk <- setcolorder(plot.pref.walk, c("response", "pref.walk.tb", "Freq"))
+plot.pref.walk$order <- c(2, 3, 1, 5, 4)
+plot.pref.walk <- plot.pref.walk %>% arrange(order)
+plot.pref.walk <- plot.pref.walk[-c(4)]
+colnames(plot.pref.walk) <- c("Response", "N", "Proportion")
+
+kable(plot.pref.walk)
+```
+
+###Biking
+```{r}
+pref.bike <- prop.table(table(factor(d$Q14_preferred_mode_b, levels = c("1", "2", "3", "4", "5"))))*100
+pref.bike <- as.data.frame(pref.bike)
+pref.bike$response <- substring(row.names(pref.bike), 1)
+pref.bike$response <- revalue(as.factor(pref.bike$response), c("1" = "A lot", "4" = "Not at all", "5" = "Not applicable"))
+
+pref.bike$plot <- factor(pref.bike$response, pref.bike$response)
+
+cols <- c("#1a9641", "#a6d96a", "#fdae61", "#d7191c", "grey")
+pref.bike.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+pref.bike.plot + geom_bar(aes(x = plot), data = pref.bike, stat = "identity") 
+      
+pref.bike.tb <- as.factor(d$Q14_preferred_mode_b)
+pref.bike.tb <- summary(pref.bike.tb)
+pref.bike.tb <- as.data.frame(pref.bike.tb)
+pref.bike.tb$Var1 <- substring(row.names(pref.bike.tb), 1)
+
+nval.df <- c("0", "0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$pref.bike.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("4", "5")
+nval.df <- nval.df[-c(1)]
+pref.bike.tb <- rbind(pref.bike.tb, nval.df)
+pref.bike.tb$response <- revalue(as.factor(pref.bike.tb$Var1), c("1" = "A lot",  "2" = "2", "3" = "3", "4" = "Not at all", "5" = "Not applicable"))
+
+plot.pref.bike <- merge(pref.bike, pref.bike.tb, by = "response")
+plot.pref.bike <- plot.pref.bike[-c(2, 4, 6)]
+plot.pref.bike <- setcolorder(plot.pref.bike, c("response", "pref.bike.tb", "Freq"))
+plot.pref.bike$order <- c(2, 3, 1, 5, 4)
+plot.pref.bike <- plot.pref.bike %>% arrange(order)
+plot.pref.bike <- plot.pref.bike[-c(4)]
+colnames(plot.pref.bike) <- c("Response", "N", "Proportion")
+
+kable(plot.pref.bike)
+```
+
+###Public Transit
+```{r}
+pref.transit <- prop.table(table(factor(d$Q14_preferred_mode_c, levels = c("1", "2", "3", "4", "5"))))*100
+pref.transit <- as.data.frame(pref.transit)
+pref.transit$response <- substring(row.names(pref.transit), 1)
+pref.transit$response <- revalue(as.factor(pref.transit$response), c("1" = "A lot", "4" = "Not at all", "5" = "Not applicable"))
+
+pref.transit$plot <- factor(pref.transit$response, pref.transit$response)
+
+cols <- c("#1a9641", "#a6d96a", "#fdae61", "#d7191c", "grey")
+pref.transit.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+pref.transit.plot + geom_bar(aes(x = plot), data = pref.transit, stat = "identity") 
+      
+pref.transit.tb <- as.factor(d$Q14_preferred_mode_c)
+pref.transit.tb <- summary(pref.transit.tb)
+pref.transit.tb <- as.data.frame(pref.transit.tb)
+pref.transit.tb$Var1 <- substring(row.names(pref.transit.tb), 1)
+pref.transit.tb$response <- revalue(as.factor(pref.transit.tb$Var1), c("1" = "A lot",  "2" = "2", "3" = "3", "4" = "Not at all", "5" = "Not applicable"))
+
+plot.pref.transit <- merge(pref.transit, pref.transit.tb, by = "response")
+plot.pref.transit <- plot.pref.transit[-c(2, 4, 6)]
+plot.pref.transit <- setcolorder(plot.pref.transit, c("response", "pref.transit.tb", "Freq"))
+plot.pref.transit$order <- c(2, 3, 1, 5, 4)
+plot.pref.transit <- plot.pref.transit %>% arrange(order)
+plot.pref.transit <- plot.pref.transit[-c(4)]
+colnames(plot.pref.transit) <- c("Response", "N", "Proportion")
+
+kable(plot.pref.transit)
+```
+
+###Car
+```{r}
+pref.car <- prop.table(table(factor(d$Q14_preferred_mode_d, levels = c("1", "2", "3", "4", "5"))))*100
+pref.car <- as.data.frame(pref.car)
+pref.car$response <- substring(row.names(pref.car), 1)
+pref.car$response <- revalue(as.factor(pref.car$response), c("1" = "A lot", "4" = "Not at all", "5" = "Not applicable"))
+
+pref.car$plot <- factor(pref.car$response, pref.car$response)
+
+cols <- c("#1a9641", "#a6d96a", "#fdae61", "#d7191c", "grey")
+pref.car.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+pref.car.plot + geom_bar(aes(x = plot), data = pref.car, stat = "identity") 
+      
+pref.car.tb <- as.factor(d$Q14_preferred_mode_d)
+pref.car.tb <- summary(pref.car.tb)
+pref.car.tb <- as.data.frame(pref.car.tb)
+pref.car.tb$Var1 <- substring(row.names(pref.car.tb), 1)
+pref.car.tb$response <- revalue(as.factor(pref.car.tb$Var1), c("1" = "A lot",  "2" = "2", "3" = "3", "4" = "Not at all", "5" = "Not applicable"))
+
+plot.pref.car <- merge(pref.car, pref.car.tb, by = "response")
+plot.pref.car <- plot.pref.car[-c(2, 4, 6)]
+plot.pref.car <- setcolorder(plot.pref.car, c("response", "pref.car.tb", "Freq"))
+plot.pref.car$order <- c(2, 3, 1, 5, 4)
+plot.pref.car <- plot.pref.car %>% arrange(order)
+plot.pref.car <- plot.pref.car[-c(4)]
+colnames(plot.pref.car) <- c("Response", "N", "Proportion")
+
+kable(plot.pref.car)
+```
+
+###Motorcycle or scooter
+```{r}
+pref.motor <- prop.table(table(factor(d$Q14_preferred_mode_e, levels = c("1", "2", "3", "4", "5"))))*100
+pref.motor <- as.data.frame(pref.motor)
+pref.motor$response <- substring(row.names(pref.motor), 1)
+pref.motor$response <- revalue(as.factor(pref.motor$response), c("1" = "A lot", "4" = "Not at all", "5" = "Not applicable"))
+
+pref.motor$plot <- factor(pref.motor$response, pref.motor$response)
+
+cols <- c("#1a9641", "#a6d96a", "#fdae61", "#d7191c", "grey")
+pref.motor.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+pref.motor.plot + geom_bar(aes(x = plot), data = pref.motor, stat = "identity") 
+      
+pref.motor.tb <- as.factor(d$Q14_preferred_mode_e)
+pref.motor.tb <- summary(pref.motor.tb)
+pref.motor.tb <- as.data.frame(pref.motor.tb)
+pref.motor.tb$Var1 <- substring(row.names(pref.motor.tb), 1)
+pref.motor.tb$response <- revalue(as.factor(pref.motor.tb$Var1), c("1" = "A lot",  "2" = "2", "3" = "3", "4" = "Not at all", "5" = "Not applicable"))
+
+plot.pref.motor <- merge(pref.motor, pref.motor.tb, by = "response")
+plot.pref.motor <- plot.pref.motor[-c(2, 4, 6)]
+plot.pref.motor <- setcolorder(plot.pref.motor, c("response", "pref.motor.tb", "Freq"))
+plot.pref.motor$order <- c(2, 3, 1, 5, 4)
+plot.pref.motor <- plot.pref.motor %>% arrange(order)
+plot.pref.motor <- plot.pref.motor[-c(4)]
+colnames(plot.pref.motor) <- c("Response", "N", "Proportion")
+
+kable(plot.pref.motor)
+```
+
+###Other
+```{r}
+d$Q14_preferred_mode_f[is.na(d$Q14_preferred_mode_f)] <- "5"
+pref.other <- prop.table(table(factor(d$Q14_preferred_mode_f, levels = c("1", "2", "3", "4", "5"))))*100
+pref.other <- as.data.frame(pref.other)
+pref.other$response <- substring(row.names(pref.other), 1)
+pref.other$response <- revalue(as.factor(pref.other$response), c("1" = "A lot", "4" = "Not at all", "5" = "Not applicable"))
+
+pref.other$plot <- factor(pref.other$response, pref.other$response)
+
+cols <- c("#1a9641", "#a6d96a", "#fdae61", "#d7191c", "grey")
+pref.other.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+pref.other.plot + geom_bar(aes(x = plot), data = pref.other, stat = "identity") 
+      
+pref.other.tb <- as.factor(d$Q14_preferred_mode_f)
+pref.other.tb <- summary(pref.other.tb)
+pref.other.tb <- as.data.frame(pref.other.tb)
+pref.other.tb$Var1 <- substring(row.names(pref.other.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$pref.other.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("4")
+nval.df <- nval.df[-c(1)]
+pref.other.tb <- rbind(pref.other.tb, nval.df)
+pref.other.tb$response <- revalue(as.factor(pref.other.tb$Var1), c("1" = "A lot",  "2" = "2", "3" = "3", "4" = "Not at all", "5" = "Not applicable"))
+
+plot.pref.other <- merge(pref.other, pref.other.tb, by = "response")
+plot.pref.other <- plot.pref.other[-c(2, 4, 6)]
+plot.pref.other <- setcolorder(plot.pref.other, c("response", "pref.other.tb", "Freq"))
+plot.pref.other$order <- c(2, 3, 1, 5, 4)
+plot.pref.other <- plot.pref.other %>% arrange(order)
+plot.pref.other <- plot.pref.other[-c(4)]
+colnames(plot.pref.other) <- c("Response", "N", "Proportion")
+
+kable(plot.pref.other)
+```
+
+```{r, results = FALSE}
+carshare.df <- c("Car2Go", "Modo", "ZipCar", "Other") 
+carshare.df <- as.data.frame(carshare.df)
+carshare.df$Members <- c("21", "46", "5", "7")
+as.numeric(carshare.df$Members)
+colnames(carshare.df) <- c("Carshare", "N Respondents")
+```
+
+##Q15:Which car share services are you a member of?
+```{r}
+noshare <- prop.table(table(factor(d$Q15_car_share_None, levels = c("0", "1"))))*100
+noshare <- as.data.frame(noshare)
+noshare$response <- substring(row.names(noshare), 1)
+noshare$response <- revalue(as.factor(noshare$response), c("1" = "Member",  "2" = "Non-member"))
+
+noshare$plot <- factor(noshare$response, noshare$response)
+
+cols <- c("#31a354","#f03b20", "grey") 
+noshare.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+noshare.plot + geom_bar(aes(x = plot), data = noshare, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response") +
+      ggtitle("Car share membership")
+   
+
+noshare.tb <- as.factor(d$Q15_car_share_None)
+noshare.tb <- summary(noshare.tb)
+noshare.tb <- as.data.frame(noshare.tb)
+noshare.tb$Var1 <- substring(row.names(noshare.tb), 1)
+noshare.tb$response <- revalue(as.factor(noshare.tb$Var1), c("0" = "Member", "1" = "Non-member"))
+
+plot.noshare <- merge(noshare, noshare.tb, by = "response")
+plot.noshare <- plot.noshare[-c(2, 4, 6)]
+plot.noshare <- setcolorder(plot.noshare, c("response", "noshare.tb", "Freq"))
+plot.noshare$order <- c(1, 2)
+plot.noshare <- plot.noshare %>% arrange(order)
+plot.noshare <- plot.noshare[-c(4)]
+colnames(plot.noshare) <- c("Response", "N", "Proportion")
+
+kable(plot.noshare)
+kable(carshare.df)
+```
+
+-Some respondents are members of more than one carshare service
+Other carshare companies:  
+Evo (Vancouver, n=6)  
+Pogo (Edmonton, n=1)
+
+
+##Q16: Are you a member of a bike advocacy group (e.g., Greater Victoria Cycling Coalition)?
+```{r}
+advocacy <- prop.table(table(factor(d$Q16_bike_advocacy, levels = c("1", "2"))))*100
+advocacy <- as.data.frame(advocacy)
+advocacy$response <- substring(row.names(advocacy), 1)
+advocacy$response <- revalue(as.factor(advocacy$response), c("1" = "Yes",  "2" = "No"))
+
+advocacy$plot <- factor(advocacy$response, advocacy$response)
+
+cols <- c("#31a354","#f03b20", "grey") 
+advocacy.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+advocacy.plot + geom_bar(aes(x = plot), data = advocacy, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+advocacy.tb <- as.factor(d$Q16_bike_advocacy)
+advocacy.tb <- summary(advocacy.tb)
+advocacy.tb <- as.data.frame(advocacy.tb)
+advocacy.tb$Var1 <- substring(row.names(advocacy.tb), 1)
+advocacy.tb$response <- revalue(as.factor(advocacy.tb$Var1), c("1" = "Yes", "2" = "No"))
+
+plot.advocacy <- merge(advocacy, advocacy.tb, by = "response")
+plot.advocacy <- plot.advocacy[-c(2, 4, 6)]
+plot.advocacy <- setcolorder(plot.advocacy, c("response", "advocacy.tb", "Freq"))
+plot.advocacy$order <- c(2, 1)
+plot.advocacy <- plot.advocacy %>% arrange(order)
+plot.advocacy <- plot.advocacy[-c(4)]
+colnames(plot.advocacy) <- c("Response", "N", "Proportion")
+
+kable(plot.advocacy)
+```
+
+##Q17: Do you ride with a recreational cycling group or club (e.g., Tripleshot, TriStars)?
+```{r}
+group <- prop.table(table(factor(d$Q17_cycling_club, levels = c("1", "2"))))*100
+group <- as.data.frame(group)
+group$response <- substring(row.names(group), 1)
+group$response <- revalue(as.factor(group$response), c("1" = "Yes",  "2" = "No"))
+
+group$plot <- factor(group$response, group$response)
+
+cols <- c("#31a354","#f03b20", "grey") 
+group.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+group.plot + geom_bar(aes(x = plot), data = group, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+group.tb <- as.factor(d$Q17_cycling_club)
+group.tb <- summary(group.tb)
+group.tb <- as.data.frame(group.tb)
+group.tb$Var1 <- substring(row.names(group.tb), 1)
+
+group.tb$response <- revalue(as.factor(group.tb$Var1), c("1" = "Yes", "2" = "No"))
+
+plot.group <- merge(group, group.tb, by = "response")
+plot.group <- plot.group[-c(2, 4, 6)]
+plot.group <- setcolorder(plot.group, c("response", "group.tb", "Freq"))
+plot.group$order <- c(2, 1)
+plot.group <- plot.group %>% arrange(order)
+plot.group <- plot.group[-c(4)]
+colnames(plot.group) <- c("Response", "N", "Proportion")
+
+kable(plot.group)
+```
+
+#*Section 2: Housing*
+
+##Q18: Thinking about where you live now, are you:
+```{r}
+tenure <- prop.table(table(factor(d$Q18_house_tenure, levels = c("1", "2", "3", "4", "5", "77"))))*100
+tenure <- as.data.frame(tenure)
+tenure$response <- substring(row.names(tenure), 1)
+tenure$response <- revalue(as.factor(tenure$response), c("1" = "An owner", "2" = "A tenant", "3" = "Resident in a relative or friend's home", "4" = "Resident other than in a relative or friend's home", "5" = "Other", "6" = "Don't know"))
+
+tenure$plot <- factor(tenure$response, tenure$response)
+
+tenure.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_brewer(palette = "Blues", direction = -1) +
+      ylab("Percent of total") +
+      xlab("")
+      
+tenure.plot + geom_bar(aes(x = plot), data = tenure, stat = "identity") 
+      
+tenure.tb <- as.factor(d$Q18_house_tenure)
+tenure.tb <- summary(tenure.tb)
+tenure.tb <- as.data.frame(tenure.tb)
+tenure.tb$Var1 <- substring(row.names(tenure.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$tenure.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("77")
+nval.df <- nval.df[-c(1)]
+
+tenure.tb <- rbind(tenure.tb, nval.df)
+
+tenure.tb$response <- revalue(as.factor(tenure.tb$Var1), c("1" = "An owner", "2" = "A tenant", "3" = "Resident in a relative or friend's home", "4" = "Resident other than in a relative or friend's home", "5" = "Other", "77" = "Don't know"))
+
+plot.tenure <- merge(tenure, tenure.tb, by = "response")
+plot.tenure <- plot.tenure[-c(2, 4, 6)]
+plot.tenure <- setcolorder(plot.tenure, c("response", "tenure.tb", "Freq"))
+plot.tenure$order <- c(2, 1, 6, 5, 3, 4)
+plot.tenure <- plot.tenure %>% arrange(order)
+plot.tenure <- plot.tenure[-c(4)]
+colnames(plot.tenure) <- c("Response", "N", "Proportion")
+
+kable(plot.tenure)
+```
+
+##Q19: In what type of dwelling to you currently live? Is it:
+```{r}
+dwelling <- prop.table(table(factor(d$Q19_dwelling_type, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "10", "77"))))*100
+dwelling <- as.data.frame(dwelling)
+dwelling$response <- substring(row.names(dwelling), 1)
+dwelling$response <- revalue(as.factor(dwelling$response), c("1" = "Single detached house", "2" = "Semi-detached house", "3" = "Row house",  "4" = "An apartment (or condo) in a duplex or triplex", "5" = "Apartment (or condo) in building with fewer than 5 storeys", "6" = "Apartment (or condo) in building with more than 5 storeys", "7" = "Mobile home/movable dwelling", "8" = "Senior's home", "9" = "Other", "10" = "Don't know"))
+
+dwelling$plot <- factor(dwelling$response, dwelling$response)
+
+cols <- c("#08306b", "#08519c", "#2171b5", "#4292c6", "#6baed6", "#9ecae1", "#c6dbef", "#deebf7", "#f7fbff", "grey")
+dwelling.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+dwelling.plot + geom_bar(aes(x = plot), data = dwelling, stat = "identity") 
+      
+dwelling.tb <- as.factor(d$Q19_dwelling_type)
+dwelling.tb <- summary(dwelling.tb)
+dwelling.tb <- as.data.frame(dwelling.tb)
+dwelling.tb$Var1 <- substring(row.names(dwelling.tb), 1)
+
+nval.df <- c("0", "0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$dwelling.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("8", "77")
+nval.df <- nval.df[-c(1)]
+
+dwelling.tb <- rbind(dwelling.tb, nval.df)
+
+dwelling.tb$response <- revalue(as.factor(dwelling.tb$Var1), c("1" = "Single detached house", "2" = "Semi-detached house", "3" = "Row house",  "4" = "An apartment (or condo) in a duplex or triplex", "5" = "Apartment (or condo) in building with fewer than 5 storeys", "6" = "Apartment (or condo) in building with more than 5 storeys", "7" = "Mobile home/movable dwelling", "8" = "Senior's home", "10" = "Other", "77" = "Don't know"))
+plot.dwelling <- merge(dwelling, dwelling.tb, by = "response")
+plot.dwelling <- plot.dwelling[-c(2, 4, 6)]
+plot.dwelling <- setcolorder(plot.dwelling, c("response", "dwelling.tb", "Freq"))
+plot.dwelling$order <- c(4, 5, 6, 10, 7, 9, 3, 2, 8, 1)
+plot.dwelling <- plot.dwelling %>% arrange(order)
+plot.dwelling <- plot.dwelling[-c(4)]
+colnames(plot.dwelling) <- c("Response", "N", "Proportion")
+
+kable(plot.dwelling)
+```
+
+#*Section 3: Physical Activity-Job*
+##Q20: During the last 7 days, on how many days did you do vigorous physical activities as part of your work?
+```{r}
+ggplot(d, aes(x = d$Q20_work_vigpa)) + geom_bar(na.rm = TRUE) + xlab("N days vigorous job-related n/ physical activity")
+summary(d$Q20_work_vigpa)
+```
+
+##Q21: How much time did you usually spend on one of those days doing vigorous physical activities as part of your work?
+```{r}
+ggplot(d, aes(x = d$Q21_work_vigpa_freq)) + geom_histogram(na.rm = TRUE, binwidth = 20) + xlab("Minutes vigorous job-related n/ physical activity") 
+summary(d$Q21_work_vigpa_freq, na.rm = TRUE)
+```
+
+#*Section 3: Physical Activity-Transportation*
+##Q22: During the last 7 days, on how many days did you travel in a motor vehicle like a train, bus, car, or tram?
+```{r}
+ggplot(d, aes(x = d$Q22_travel_motor)) + geom_bar(na.rm = TRUE) + xlab("N days")
+summary(d$Q22_travel_motor)
+```
+
+##Q23: How much time did you usually spend on one of those days traveling in a train, bus, car, tram, or other kind of motor vehicle?
+```{r}
+ggplot(d, aes(x = d$Q23_travel_motor_freq)) + geom_histogram(na.rm = TRUE, binwidth = 20) + xlab("Minutes travel time") 
+summary(d$Q23_travel_motor_freq)
+```
+
+##Q24: During the last 7 days, on how many days did you bicycle for at least 10 minutes at a time to go from place to place?
+```{r}
+ggplot(d, aes(x = d$Q24_travel_bike)) + geom_bar(na.rm = TRUE) + xlab("N days")
+summary(d$Q24_travel_bike)
+```
+
+##Q25: How much time did you usually spend on one of those days bicycling from place to place?
+```{r}
+ggplot(d, aes(x = d$Q25_travel_bike_freq)) + geom_histogram(na.rm = TRUE, binwidth = 20) + xlab("Minutes travel by bicycle") 
+summary(d$Q25_travel_bike_freq)
+```
+
+##Q26: During the last 7 days, on how many days did you walk for at least 10 minutes at a time to go from place to place?
+```{r}
+ggplot(d, aes(x = d$Q26_travel_walk)) + geom_bar(na.rm = TRUE) + xlab("N days")
+summary(d$Q26_travel_walk)
+```
+
+##Q27: How much time did you usually spend on one of those days walking from place to place?
+```{r}
+ggplot(d, aes(x = d$Q27_travel_walk_freq)) + geom_histogram(na.rm = TRUE, binwidth = 10) + xlab("Minutes travel by walking") 
+summary(d$Q27_travel_walk_freq)
+```
+
+#*Section 3: Physical Activity-Recreation, sport & leisure*
+##Q28: Not counting any walking for transportation that you have already mentioned, during the last 7 days, on how many days did you walk for at least 10 minutes at a time in your leisure time?
+```{r}
+ggplot(d, aes(x = d$Q28_leisure_walk)) + geom_bar(na.rm = TRUE) + xlab("N days")
+summary(d$Q28_leisure_walk)
+```
+
+##Q29: How much time did you usually spend on one of those days walking in your leisure time?
+```{r}
+ggplot(d, aes(x = d$Q29_leisure_walk_freq)) + geom_histogram(na.rm = TRUE, binwidth = 20) + xlab("Minutes leisure time walking") 
+summary(d$Q29_leisure_walk_freq)
+```
+
+##Q30: During the last 7 days, on how many days did you do vigorous physical activities like aerobics, running, fast bicycling, or fast swimming in your leisure time?
+```{r}
+ggplot(d, aes(x = d$Q30_leisure_vigpa)) + geom_bar(na.rm = TRUE) + xlab("N days")
+summary(d$Q30_leisure_vigpa)
+```
+
+##31: How much time did you usually spend on one of those days doing vigorous physical activities in your leisure time?
+```{r}
+ggplot(d, aes(x = d$Q31_leisure_vigpa_freq)) + geom_histogram(na.rm = TRUE) + xlab("Minutes leisure time vigorous PA") 
+summary(d$Q31_leisure_vigpa_freq)
+```
+
+##Q32: During the last 7 days, on how many days did you do moderate physical activities like bicycling at a regular pace, swimming at a regular pace, and doubles tennis in your leisure time?
+```{r}
+ggplot(d, aes(x = d$Q32_modpa_leisure)) + geom_bar(na.rm = TRUE) + xlab("N days")
+summary(d$Q32_modpa_leisure)
+```
+
+##33: How much time did you usually spend on one of those days doing moderate physical activities in your leisure time?
+```{r}
+ggplot(d, aes(x = d$Q33_modpa_leisure_freq)) + geom_histogram(na.rm = TRUE) + xlab("Minutes leisure time moderate PA") 
+summary(d$Q33_modpa_leisure_freq)
+```
+
+##Q34: During the last 7 days, how much time did you usually spend sitting on a weekday?
+```{r}
+ggplot(d, aes(x = d$Q34_sit_weekday/60)) + geom_histogram(na.rm = TRUE, binwidth = 1) + xlab("Hours sitting, weekday") 
+summary(d$Q34_sit_weekday/60)
+```
+
+##35: During the last 7 days, how much time did you usually spend sitting on a weekend day?
+```{r}
+ggplot(d, aes(x = d$Q35_sit_weekend/60)) + geom_histogram(na.rm = TRUE, binwidth = 1) + xlab("Hours sitting, weekend") 
+summary(d$Q35_sit_weekend/60)
+```
+
+#*Section 3: Physical Activity-Dog Ownership*
+##Q36: Do you live with a dog?
+```{r}
+dog <- prop.table(table(factor(d$Q36_dog, levels = c("1", "2"))))*100
+dog <- as.data.frame(dog)
+dog$response <- substring(row.names(dog), 1)
+dog$response <- revalue(as.factor(dog$response), c("1" = "Yes",  "2" = "No"))
+
+dog$plot <- factor(dog$response, dog$response)
+
+cols <- c("#31a354","#f03b20", "grey") 
+dog.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+dog.plot + geom_bar(aes(x = plot), data = dog, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+dog.tb <- as.factor(d$Q36_dog)
+dog.tb <- summary(dog.tb)
+dog.tb <- as.data.frame(dog.tb)
+dog.tb$Var1 <- substring(row.names(dog.tb), 1)
+dog.tb$response <- revalue(as.factor(dog.tb$Var1), c("1" = "Yes", "2" = "No"))
+
+plot.dog <- merge(dog, dog.tb, by = "response")
+plot.dog <- plot.dog[-c(2, 4, 6)]
+plot.dog <- setcolorder(plot.dog, c("response", "dog.tb", "Freq"))
+plot.dog$order <- c(2, 1)
+plot.dog <- plot.dog %>% arrange(order)
+plot.dog <- plot.dog[-c(4)]
+colnames(plot.dog) <- c("Response", "N", "Proportion")
+
+kable(plot.dog)
+```
+
+##Q37: Do you walk the dog regularly?
+```{r}
+dog.walk <- prop.table(table(factor(d$Q37_dog_walk, levels = c("1", "2"))))*100
+dog.walk <- as.data.frame(dog.walk)
+dog.walk$response <- substring(row.names(dog.walk), 1)
+dog.walk$response <- revalue(as.factor(dog.walk$response), c("1" = "Yes",  "2" = "No"))
+
+dog.walk$plot <- factor(dog.walk$response, dog.walk$response)
+
+cols <- c("#31a354","#f03b20") 
+dog.walk.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+dog.walk.plot + geom_bar(aes(x = plot), data = dog.walk, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+dog.walk.tb <- as.factor(d$Q37_dog_walk)
+dog.walk.tb <- summary(dog.walk.tb)
+dog.walk.tb <- as.data.frame(dog.walk.tb)
+dog.walk.tb$Var1 <- substring(row.names(dog.walk.tb), 1)
+dog.walk.tb$response <- revalue(as.factor(dog.walk.tb$Var1), c("1" = "Yes", "2" = "No", "NA's" = "NA"))
+
+plot.dog.walk <- merge(dog.walk, dog.walk.tb, by = "response")
+plot.dog.walk <- merge(dog.walk, plot.dog.walk, by = "response")
+plot.dog.walk <- plot.dog.walk[-c(2, 4:7, 9)]
+plot.dog.walk <- setcolorder(plot.dog.walk, c("response", "dog.walk.tb", "Freq.x"))
+plot.dog.walk$order <- c(2, 1)
+plot.dog.walk <- plot.dog.walk %>% arrange(order)
+plot.dog.walk <- plot.dog.walk[-c(4)]
+colnames(plot.dog.walk) <- c("Response", "N", "Proportion")
+
+kable(plot.dog.walk)
+```
+
+##Q38: How many hours or minutes a day on average do you walk the dog?
+```{r}
+ggplot(d, aes(x = d$Q38_dog_walk_freq)) + geom_histogram(na.rm = TRUE, binwidth = 5) + xlab("Minutes dog walking") 
+summary(d$Q38_dog_walk_freq)
+```
+
+
+#*Section 4: General Health*
+##Q39: How tall are you? (Choose either feet or centimetres)
+```{r}
+ggplot(d, aes(x = d$Q39_height)) + geom_histogram(na.rm = TRUE, binwidth = 1) + xlab("Height (cm)") 
+summary(d$Q39_height)
+```
+
+##Q40: How much do you weigh? (Choose either pounds or kilograms)
+```{r}
+ggplot(d, aes(x = d$Q40_weight)) + geom_histogram(na.rm = TRUE, binwidth = 2) + xlab("Weight (kg)") 
+summary(d$Q40_weight)
+```
+
+##Q41: In general, would you say your health is:
+```{r}
+health <- prop.table(table(factor(d$Q41, levels = c("1", "2", "3", "4", "5"))))*100
+health <- as.data.frame(health)
+health$response <- substring(row.names(health), 1)
+health$response <- revalue(as.factor(health$response), c("1" = "Excellent", "2" = "Very good", "3" = "Good", "4" = "Fair", "5" = "Poor"))
+
+health$plot <- factor(health$response, health$response)
+
+health.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_brewer(palette = "BuGn", direction=-1) +
+      ylab("Percent of total") +
+      xlab("")
+      
+health.plot + geom_bar(aes(x = plot), data = health, stat = "identity") 
+      
+health.tb <- as.factor(d$Q41_sf1)
+health.tb <- summary(health.tb)
+health.tb <- as.data.frame(health.tb)
+health.tb$Var1 <- substring(row.names(health.tb), 1)
+health.tb$response <- revalue(as.factor(health.tb$Var1), c("1" = "Excellent", "2" = "Very good", "3" = "Good", "4" = "Fair", "5" = "Poor"))
+
+plot.health <- merge(health, health.tb, by = "response")
+plot.health <- plot.health[-c(2, 4, 6)]
+plot.health <- setcolorder(plot.health, c("response", "health.tb", "Freq"))
+plot.health$order <- c(1, 4, 3, 5, 2)
+plot.health <- plot.health %>% arrange(order)
+plot.health <- plot.health[-c(4)]
+colnames(plot.health) <- c("Response", "N", "Proportion")
+
+kable(plot.health)
+```
+
+##Q42:The following items are about activities you might do during a typical day. Does your health now limit you in these activities? If so, how much? {.tabset}
+###Moderate activities such as moving a table, pushing a vacuum cleaner, bowling, or playing golf
+```{r} 
+mod <- prop.table(table(factor(d$Q42_sf2, levels = c("1", "2", "3"))))*100
+mod <- as.data.frame(mod)
+mod$response <- substring(row.names(mod), 1)
+mod$response <- revalue(as.factor(mod$response), c("1" = "Yes, limited a lot",  "2" = "Yes, limited a little", "3" = "No, not at all"))
+
+mod$plot <- factor(mod$response, mod$response)
+
+cols <- c(brewer.pal(3,"RdYlGn"),"grey")
+mod.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+mod.plot + geom_bar(aes(x = plot), data = mod, stat = "identity") 
+      
+mod.tb <- as.factor(d$Q42_sf2)
+mod.tb <- summary(mod.tb)
+mod.tb <- as.data.frame(mod.tb)
+mod.tb$Var1 <- substring(row.names(mod.tb), 1)
+mod.tb$response <- revalue(as.factor(mod.tb$Var1), c("1" = "Yes, limited a lot",  "2" = "Yes, limited a little", "3" = "No, not at all"))
+
+plot.mod <- merge(mod, mod.tb, by = "response")
+plot.mod <- plot.mod[-c(2, 4, 6)]
+plot.mod <- setcolorder(plot.mod, c("response", "mod.tb", "Freq"))
+plot.mod$order <- c(3, 2, 1)
+plot.mod <- plot.mod %>% arrange(order)
+plot.mod <- plot.mod[-c(4)]
+colnames(plot.mod) <- c("Response", "N", "Proportion")
+
+kable(plot.mod)
+```
+
+###Climbing several flights of stairs
+```{r} 
+stairs <- prop.table(table(factor(d$Q42_sf3, levels = c("1", "2", "3"))))*100
+stairs <- as.data.frame(stairs)
+stairs$response <- substring(row.names(stairs), 1)
+stairs$response <- revalue(as.factor(stairs$response), c("1" = "Yes, limited a lot",  "2" = "Yes, limited a little", "3" = "No, not at all"))
+
+stairs$plot <- factor(stairs$response, stairs$response)
+
+cols <- c(brewer.pal(3,"RdYlGn"),"grey")
+stairs.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+stairs.plot + geom_bar(aes(x = plot), data = stairs, stat = "identity") 
+      
+stairs.tb <- as.factor(d$Q42_sf3)
+stairs.tb <- summary(stairs.tb)
+stairs.tb <- as.data.frame(stairs.tb)
+stairs.tb$Var1 <- substring(row.names(stairs.tb), 1)
+stairs.tb$response <- revalue(as.factor(stairs.tb$Var1), c("1" = "Yes, limited a lot",  "2" = "Yes, limited a little", "3" = "No, not at all"))
+
+plot.stairs <- merge(stairs, stairs.tb, by = "response")
+plot.stairs <- plot.stairs[-c(2, 4, 6)]
+plot.stairs <- setcolorder(plot.stairs, c("response", "stairs.tb", "Freq"))
+plot.stairs$order <- c(3, 2, 1)
+plot.stairs <- plot.stairs %>% arrange(order)
+plot.stairs <- plot.stairs[-c(4)]
+colnames(plot.stairs) <- c("Response", "N", "Proportion")
+
+kable(plot.stairs)
+```
+
+##Q43: During the past 4 weeks, have you had any of the following problems with your work or other regular daily activities as a result of your physical health?{.tabset}
+### Accomplished less than you would like
+```{r} 
+Q43.a <- prop.table(table(factor(d$Q43_sf4, levels = c("1", "2"))))*100
+Q43.a <- as.data.frame(Q43.a)
+Q43.a$response <- substring(row.names(Q43.a), 1)
+Q43.a$response <- revalue(as.factor(Q43.a$response), c("1" = "Yes",  "2" = "No"))
+
+Q43.a$plot <- factor(Q43.a$response, Q43.a$response)
+
+cols <- c("#31a354","#f03b20", "grey") 
+Q43.a.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+Q43.a.plot + geom_bar(aes(x = plot), data = Q43.a, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+Q43.a.tb <- as.factor(d$Q43_sf4)
+Q43.a.tb <- summary(Q43.a.tb)
+Q43.a.tb <- as.data.frame(Q43.a.tb)
+Q43.a.tb$Var1 <- substring(row.names(Q43.a.tb), 1)
+Q43.a.tb$response <- revalue(as.factor(Q43.a.tb$Var1), c("1" = "Yes", "2" = "No"))
+
+plot.Q43.a <- merge(Q43.a, Q43.a.tb, by = "response")
+plot.Q43.a <- plot.Q43.a[-c(2, 4, 6)]
+plot.Q43.a <- setcolorder(plot.Q43.a, c("response", "Q43.a.tb", "Freq"))
+plot.Q43.a$order <- c(2, 1)
+plot.Q43.a <- plot.Q43.a %>% arrange(order)
+plot.Q43.a <- plot.Q43.a[-c(4)]
+colnames(plot.Q43.a) <- c("Response", "N", "Proportion")
+
+kable(plot.Q43.a)
+```
+
+### Were limited in the kind of work or other activities
+```{r} 
+Q43.b <- prop.table(table(factor(d$Q43_sf5, levels = c("1", "2"))))*100
+Q43.b <- as.data.frame(Q43.b)
+Q43.b$response <- substring(row.names(Q43.b), 1)
+Q43.b$response <- revalue(as.factor(Q43.b$response), c("1" = "Yes",  "2" = "No"))
+
+Q43.b$plot <- factor(Q43.b$response, Q43.b$response)
+
+cols <- c("#31a354","#f03b20", "grey") 
+Q43.b.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+Q43.b.plot + geom_bar(aes(x = plot), data = Q43.b, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+Q43.b.tb <- as.factor(d$Q43_sf5)
+Q43.b.tb <- summary(Q43.b.tb)
+Q43.b.tb <- as.data.frame(Q43.b.tb)
+Q43.b.tb$Var1 <- substring(row.names(Q43.b.tb), 1)
+Q43.b.tb$response <- revalue(as.factor(Q43.b.tb$Var1), c("1" = "Yes", "2" = "No"))
+
+plot.Q43.b <- merge(Q43.b, Q43.b.tb, by = "response")
+plot.Q43.b <- plot.Q43.b[-c(2, 4, 6)]
+plot.Q43.b <- setcolorder(plot.Q43.b, c("response", "Q43.b.tb", "Freq"))
+plot.Q43.b$order <- c(2, 1)
+plot.Q43.b <- plot.Q43.b %>% arrange(order)
+plot.Q43.b <- plot.Q43.b[-c(4)]
+colnames(plot.Q43.b) <- c("Response", "N", "Proportion")
+
+kable(plot.Q43.b)
+```
+
+##Q44: During the past 4 weeks, have you had any of the following problems with your work or other regular daily activities as a result of any emotional problems (such as feeling depressed or anxious)? {.tabset}
+### Accomplished less than you would like
+```{r} 
+Q44.a <- prop.table(table(factor(d$Q44_sf6, levels = c("1", "2"))))*100
+Q44.a <- as.data.frame(Q44.a)
+Q44.a$response <- substring(row.names(Q44.a), 1)
+Q44.a$response <- revalue(as.factor(Q44.a$response), c("1" = "Yes",  "2" = "No"))
+
+Q44.a$plot <- factor(Q44.a$response, Q44.a$response)
+
+cols <- c("#31a354","#f03b20", "grey") 
+Q44.a.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+Q44.a.plot + geom_bar(aes(x = plot), data = Q44.a, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+Q44.a.tb <- as.factor(d$Q44_sf6)
+Q44.a.tb <- summary(Q44.a.tb)
+Q44.a.tb <- as.data.frame(Q44.a.tb)
+Q44.a.tb$Var1 <- substring(row.names(Q44.a.tb), 1)
+Q44.a.tb$response <- revalue(as.factor(Q44.a.tb$Var1), c("1" = "Yes", "2" = "No"))
+
+plot.Q44.a <- merge(Q44.a, Q44.a.tb, by = "response")
+plot.Q44.a <- plot.Q44.a[-c(2, 4, 6)]
+plot.Q44.a <- setcolorder(plot.Q44.a, c("response", "Q44.a.tb", "Freq"))
+plot.Q44.a$order <- c(2, 1)
+plot.Q44.a <- plot.Q44.a %>% arrange(order)
+plot.Q44.a <- plot.Q44.a[-c(4)]
+colnames(plot.Q44.a) <- c("Response", "N", "Proportion")
+
+kable(plot.Q44.a)
+```
+
+### Did work or activities less carefully than usual
+```{r} 
+Q44.b <- prop.table(table(factor(d$Q44_sf7, levels = c("1", "2"))))*100
+Q44.b <- as.data.frame(Q44.b)
+Q44.b$response <- substring(row.names(Q44.b), 1)
+Q44.b$response <- revalue(as.factor(Q44.b$response), c("1" = "Yes",  "2" = "No"))
+
+Q44.b$plot <- factor(Q44.b$response, Q44.b$response)
+
+cols <- c("#31a354","#f03b20", "grey") 
+Q44.b.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+Q44.b.plot + geom_bar(aes(x = plot), data = Q44.b, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+Q44.b.tb <- as.factor(d$Q44_sf7)
+Q44.b.tb <- summary(Q44.b.tb)
+Q44.b.tb <- as.data.frame(Q44.b.tb)
+Q44.b.tb$Var1 <- substring(row.names(Q44.b.tb), 1)
+Q44.b.tb$response <- revalue(as.factor(Q44.b.tb$Var1), c("1" = "Yes", "2" = "No"))
+
+plot.Q44.b <- merge(Q44.b, Q44.b.tb, by = "response")
+plot.Q44.b <- plot.Q44.b[-c(2, 4, 6)]
+plot.Q44.b <- setcolorder(plot.Q44.b, c("response", "Q44.b.tb", "Freq"))
+plot.Q44.b$order <- c(2, 1)
+plot.Q44.b <- plot.Q44.b %>% arrange(order)
+plot.Q44.b <- plot.Q44.b[-c(4)]
+colnames(plot.Q44.b) <- c("Response", "N", "Proportion")
+
+kable(plot.Q44.b)
+```
+
+##Q45:During the past 4 weeks, how much did pain interfere with your normal work (including work outside the home and housework)?
+```{r} 
+pain <- prop.table(table(factor(d$Q45_sf8, levels = c("1", "2", "3", "4", "5"))))*100
+pain <- as.data.frame(pain)
+pain$response <- substring(row.names(pain), 1)
+pain$response <- revalue(as.factor(pain$response), c("1" = "Not at all",  "2" = "Slightly", "3" = "Moderately", "4" =  "Quite a bit", "5" = "Extremely"))
+
+pain$plot <- factor(pain$response, pain$response)
+
+cols <- c("#1a9641", "#a6d96a", "#ffffbf", "#fdae61", "#d7191c")
+pain.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_brewer(palette = "BuGn", direction=-1) +
+      ylab("Percent of total") +
+      xlab("")
+      
+pain.plot + geom_bar(aes(x = plot), data = pain, stat = "identity") 
+      
+pain.tb <- as.factor(d$Q45_sf8)
+pain.tb <- summary(pain.tb)
+pain.tb <- as.data.frame(pain.tb)
+pain.tb$Var1 <- substring(row.names(pain.tb), 1)
+pain.tb$response <- revalue(as.factor(pain.tb$Var1), c("1" = "Not at all",  "2" = "Slightly", "3" = "Moderately", "4" =  "Quite a bit", "5" = "Extremely"))
+
+plot.pain <- merge(pain, pain.tb, by = "response")
+plot.pain <- plot.pain[-c(2, 4, 6)]
+plot.pain <- setcolorder(plot.pain, c("response", "pain.tb", "Freq"))
+plot.pain$order <- c(5, 3, 1, 4, 2)
+plot.pain <- plot.pain %>% arrange(order)
+plot.pain <- plot.pain[-c(4)]
+colnames(plot.pain) <- c("Response", "N", "Proportion")
+
+kable(plot.pain)
+```
+
+##Q46:How much of the time during the past 4 weeks:{.tabset}
+###Have you felt calm and peaceful?
+```{r} 
+peace <- prop.table(table(factor(d$Q46_sf9, levels = c("1", "2", "3", "4", "5", "6"))))*100
+peace <- as.data.frame(peace)
+peace$response <- substring(row.names(peace), 1)
+peace$response <- revalue(as.factor(peace$response), c("1" = "All of the time",  "2" = "Most of the time", "3" = "A good bit of the time", "4" =  "Some of the time", "5" = "A little of the time", "6" = "None of the time"))
+
+peace$plot <- factor(peace$response, peace$response)
+
+peace.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_brewer(palette = "BuGn", direction=-1)  +
+      ylab("Percent of total") +
+      xlab("")
+      
+peace.plot + geom_bar(aes(x = plot), data = peace, stat = "identity") 
+      
+peace.tb <- as.factor(d$Q46_sf9)
+peace.tb <- summary(peace.tb)
+peace.tb <- as.data.frame(peace.tb)
+peace.tb$Var1 <- substring(row.names(peace.tb), 1)
+peace.tb$response <- revalue(as.factor(peace.tb$Var1), c("1" = "All of the time",  "2" = "Most of the time", "3" = "A good bit of the time", "4" =  "Some of the time", "5" = "A little of the time", "6" = "None of the time"))
+
+plot.peace <- merge(peace, peace.tb, by = "response")
+plot.peace <- plot.peace[-c(2, 4, 6)]
+plot.peace <- setcolorder(plot.peace, c("response", "peace.tb", "Freq"))
+plot.peace$order <- c(3, 5, 1, 2, 6 ,4)
+plot.peace <- plot.peace %>% arrange(order)
+plot.peace <- plot.peace[-c(4)]
+colnames(plot.peace) <- c("Response", "N", "Proportion")
+
+kable(plot.peace)
+```
+
+###Did you have a lot of energy?
+```{r} 
+energy <- prop.table(table(factor(d$Q46_sf10, levels = c("1", "2", "3", "4", "5", "6")), exclude = NULL))*100
+energy <- as.data.frame(energy)
+energy$response <- substring(row.names(energy), 1)
+energy$response <- revalue(as.factor(energy$response), c("1" = "All of the time",  "2" = "Most of the time", "3" = "A good bit of the time", "4" =  "Some of the time", "5" = "A little of the time", "6" = "None of the time", "7" =  "NA"))
+
+energy$plot <- factor(energy$response, energy$response)
+
+energy.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_brewer(palette = "BuGn", direction=-1)  +
+      ylab("Percent of total") +
+      xlab("")
+      
+energy.plot + geom_bar(aes(x = plot), data = energy, stat = "identity") 
+      
+energy.tb <- as.factor(d$Q46_sf10)
+energy.tb <- summary(energy.tb)
+energy.tb <- as.data.frame(energy.tb)
+energy.tb$Var1 <- substring(row.names(energy.tb), 1)
+energy.tb$response <- revalue(as.factor(energy.tb$Var1), c("1" = "All of the time",  "2" = "Most of the time", "3" = "A good bit of the time", "4" =  "Some of the time", "5" = "A little of the time", "6" = "None of the time", "NA's" = "NA"))
+
+plot.energy <- merge(energy, energy.tb, by = "response")
+plot.energy <- plot.energy[-c(2, 4, 6)]
+plot.energy <- setcolorder(plot.energy, c("response", "energy.tb", "Freq"))
+plot.energy$order <- c(3, 5, 1, 2, 7, 6 ,4)
+plot.energy <- plot.energy %>% arrange(order)
+plot.energy <- plot.energy[-c(4)]
+colnames(plot.energy) <- c("Response", "N", "Proportion")
+
+kable(plot.energy)
+```
+
+###Have you felt downhearted and blue?
+```{r} 
+blue <- prop.table(table(factor(d$Q46_sf11, levels = c("1", "2", "3", "4", "5", "6")), exclude = NULL))*100
+blue <- as.data.frame(blue)
+blue$response <- substring(row.names(blue), 1)
+blue$response <- revalue(as.factor(blue$response), c("1" = "All of the time",  "2" = "Most of the time", "3" = "A good bit of the time", "4" =  "Some of the time", "5" = "A little of the time", "6" = "None of the time", "7" =  "NA"))
+
+blue$plot <- factor(blue$response, blue$response)
+
+blue.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_brewer(palette = "BuGn", direction=-1)  +
+      ylab("Percent of total") +
+      xlab("")
+      
+blue.plot + geom_bar(aes(x = plot), data = blue, stat = "identity") 
+      
+blue.tb <- as.factor(d$Q46_sf11)
+blue.tb <- summary(blue.tb)
+blue.tb <- as.data.frame(blue.tb)
+blue.tb$Var1 <- substring(row.names(blue.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$blue.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("1")
+nval.df <- nval.df[-c(1)]
+blue.tb <- rbind(blue.tb, nval.df)
+blue.tb$response <- revalue(as.factor(blue.tb$Var1), c("1" = "All of the time",  "2" = "Most of the time", "3" = "A good bit of the time", "4" =  "Some of the time", "5" = "A little of the time", "6" = "None of the time", "NA's" = "NA"))
+
+plot.blue <- merge(blue, blue.tb, by = "response")
+plot.blue <- plot.blue[-c(2, 4, 6)]
+plot.blue <- setcolorder(plot.blue, c("response", "blue.tb", "Freq"))
+plot.blue$order <- c(3, 5, 1, 2, 7, 6 ,4)
+plot.blue <- plot.blue %>% arrange(order)
+plot.blue <- plot.blue[-c(4)]
+colnames(plot.blue) <- c("Response", "N", "Proportion")
+
+kable(plot.blue)
+```
+
+##Q47:During the past 4 weeks, how much of the time has your physical health or emotional problems interfered with your social activities (like visiting friends, relatives, etc.)?
+```{r} 
+social <- prop.table(table(factor(d$Q47_sf12, levels = c("1", "2", "3", "4", "5", "6"))))*100
+social <- as.data.frame(social)
+social$response <- substring(row.names(social), 1)
+social$response <- revalue(as.factor(social$response), c("1" = "All of the time",  "2" = "Most of the time", "3" = "A good bit of the time", "4" =  "Some of the time", "5" = "A little of the time", "6" = "None of the time"))
+
+social$plot <- factor(social$response, social$response)
+
+cols <- c("#d73027","#d73027", "#fee08b", "#d9ef8b", "#91cf60", "#1a9850")
+social.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols)  +
+      ylab("Percent of total") +
+      xlab("")
+      
+social.plot + geom_bar(aes(x = plot), data = social, stat = "identity") 
+      
+social.tb <- as.factor(d$Q47_sf12)
+social.tb <- summary(social.tb)
+social.tb <- as.data.frame(social.tb)
+social.tb$Var1 <- substring(row.names(social.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$social.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("2")
+nval.df <- nval.df[-c(1)]
+social.tb <- rbind(social.tb, nval.df)
+social.tb$response <- revalue(as.factor(social.tb$Var1), c("1" = "All of the time",  "2" = "Most of the time", "3" = "A good bit of the time", "4" =  "Some of the time", "5" = "A little of the time", "6" = "None of the time"))
+
+plot.social <- merge(social, social.tb, by = "response")
+plot.social <- plot.social[-c(2, 4, 6)]
+plot.social <- setcolorder(plot.social, c("response", "social.tb", "Freq"))
+plot.social$order <- c(3, 5, 1, 2, 6 ,4)
+plot.social <- plot.social %>% arrange(order)
+plot.social <- plot.social[-c(4)]
+colnames(plot.social) <- c("Response", "N", "Proportion")
+
+kable(plot.social)
+```
+
+#*Section 5: Personal Wellbeing*
+##Q48:Thinking about your own life and personal circumstances, how satisfied are you:{.tabset}
+###With your life as a whole?
+```{r} 
+life <- prop.table(table(factor(d$Q48_pwb_a, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))))*100
+life <- as.data.frame(life)
+life$response <- substring(row.names(life), 1)
+life$response <- revalue(as.factor(life$response), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+cols <- c(rev(brewer.pal(10,"RdYlGn")),"grey")
+life$plot <- factor(life$response, life$response)
+life.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("")
+      
+life.plot + geom_bar(aes(x = plot), data = life, stat = "identity") 
+      
+life.tb <- as.factor(d$Q48_pwb_a)
+life.tb <- summary(life.tb)
+life.tb <- as.data.frame(life.tb)
+life.tb$Var1 <- substring(row.names(life.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$life.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("10")
+nval.df <- nval.df[-c(1)]
+life.tb <- rbind(life.tb, nval.df)
+life.tb$response <- revalue(as.factor(life.tb$Var1), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+plot.life <- merge(life, life.tb, by = "response")
+plot.life <- plot.life[-c(2, 4, 6)]
+plot.life <- setcolorder(plot.life, c("response", "life.tb", "Freq"))
+plot.life$order <- c(2, 3, 4, 6, 7, 8, 9, 10, 1, 5)
+plot.life <- plot.life %>% arrange(order)
+plot.life <- plot.life[-c(4)]
+colnames(plot.life) <- c("Response", "N", "Proportion")
+
+kable(plot.life)
+```
+
+###With your standard of living?
+```{r} 
+living <- prop.table(table(factor(d$Q48_pwb_b, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))))*100
+living <- as.data.frame(living)
+living$response <- substring(row.names(living), 1)
+living$response <- revalue(as.factor(living$response), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+living$plot <- factor(living$response, living$response)
+cols <- c(rev(brewer.pal(10,"RdYlGn")),"grey")
+living.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols)  +
+      ylab("Percent of total") +
+      xlab("")
+      
+living.plot + geom_bar(aes(x = plot), data = living, stat = "identity") 
+      
+living.tb <- as.factor(d$Q48_pwb_b)
+living.tb <- summary(living.tb)
+living.tb <- as.data.frame(living.tb)
+living.tb$Var1 <- substring(row.names(living.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$living.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("9")
+nval.df <- nval.df[-c(1)]
+living.tb <- rbind(living.tb, nval.df)
+living.tb$response <- revalue(as.factor(living.tb$Var1), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+plot.living <- merge(living, living.tb, by = "response")
+plot.living <- plot.living[-c(2, 4, 6)]
+plot.living <- setcolorder(plot.living, c("response", "living.tb", "Freq"))
+plot.living$order <- c(2, 3, 4, 6, 7, 8, 9, 10, 1, 5)
+plot.living <- plot.living %>% arrange(order)
+plot.living <- plot.living[-c(4)]
+colnames(plot.living) <- c("Response", "N", "Proportion")
+
+kable(plot.living)
+```
+
+###With your health?
+```{r} 
+healthsat <- prop.table(table(factor(d$Q48_pwb_c, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))))*100
+healthsat <- as.data.frame(healthsat)
+healthsat$response <- substring(row.names(healthsat), 1)
+healthsat$response <- revalue(as.factor(healthsat$response), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+healthsat$plot <- factor(healthsat$response, healthsat$response)
+cols <- c(rev(brewer.pal(10,"RdYlGn")),"grey")
+healthsat.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols)  +
+      ylab("Percent of total") +
+      xlab("")
+      
+healthsat.plot + geom_bar(aes(x = plot), data = healthsat, stat = "identity") 
+      
+healthsat.tb <- as.factor(d$Q48_pwb_c)
+healthsat.tb <- summary(healthsat.tb)
+healthsat.tb <- as.data.frame(healthsat.tb)
+healthsat.tb$Var1 <- substring(row.names(healthsat.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$healthsat.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("10")
+nval.df <- nval.df[-c(1)]
+healthsat.tb <- rbind(healthsat.tb, nval.df)
+healthsat.tb$response <- revalue(as.factor(healthsat.tb$Var1), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+plot.healthsat <- merge(healthsat, healthsat.tb, by = "response")
+plot.healthsat <- plot.healthsat[-c(2, 4, 6)]
+plot.healthsat <- setcolorder(plot.healthsat, c("response", "healthsat.tb", "Freq"))
+plot.healthsat$order <- c(2, 3, 4, 6, 7, 8, 9, 10, 1,  5)
+plot.healthsat <- plot.healthsat %>% arrange(order)
+plot.healthsat <- plot.healthsat[-c(4)]
+colnames(plot.healthsat) <- c("Response", "N", "Proportion")
+
+kable(plot.healthsat)
+```
+
+###With what you are achieving in life?
+```{r} 
+ach <- prop.table(table(factor(d$Q48_pwb_d, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))))*100
+ach <- as.data.frame(ach)
+ach$response <- substring(row.names(ach), 1)
+ach$response <- revalue(as.factor(ach$response), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+ach$plot <- factor(ach$response, ach$response)
+cols <- c(rev(brewer.pal(10,"RdYlGn")),"grey")
+ach.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols)  +
+      ylab("Percent of total") +
+      xlab("")
+      
+ach.plot + geom_bar(aes(x = plot), data = ach, stat = "identity") 
+      
+ach.tb <- as.factor(d$Q48_pwb_d)
+ach.tb <- summary(ach.tb)
+ach.tb <- as.data.frame(ach.tb)
+ach.tb$Var1 <- substring(row.names(ach.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$ach.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("10")
+nval.df <- nval.df[-c(1)]
+ach.tb <- rbind(ach.tb, nval.df)
+ach.tb$response <- revalue(as.factor(ach.tb$Var1), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+plot.ach <- merge(ach, ach.tb, by = "response")
+plot.ach <- plot.ach[-c(2, 4, 6)]
+plot.ach <- setcolorder(plot.ach, c("response", "ach.tb", "Freq"))
+plot.ach$order <- c(2, 3, 4, 6, 7, 8, 9, 10, 1, 5)
+plot.ach <- plot.ach %>% arrange(order)
+plot.ach <- plot.ach[-c(4)]
+colnames(plot.ach) <- c("Response", "N", "Proportion")
+
+kable(plot.ach)
+```
+
+###With your personal relationships?
+```{r} 
+relat <- prop.table(table(factor(d$Q48_pwb_e, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))))*100
+relat <- as.data.frame(relat)
+relat$response <- substring(row.names(relat), 1)
+relat$response <- revalue(as.factor(relat$response), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+relat$plot <- factor(relat$response, relat$response)
+cols <- c(rev(brewer.pal(10,"RdYlGn")),"grey")
+relat.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols)  +
+      ylab("Percent of total") +
+      xlab("")
+      
+relat.plot + geom_bar(aes(x = plot), data = relat, stat = "identity") 
+      
+relat.tb <- as.factor(d$Q48_pwb_e)
+relat.tb <- summary(relat.tb)
+relat.tb <- as.data.frame(relat.tb)
+relat.tb$Var1 <- substring(row.names(relat.tb), 1)
+relat.tb$response <- revalue(as.factor(relat.tb$Var1), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+plot.relat <- merge(relat, relat.tb, by = "response")
+plot.relat <- plot.relat[-c(2, 4, 6)]
+plot.relat <- setcolorder(plot.relat, c("response", "relat.tb", "Freq"))
+plot.relat$order <- c(2, 3, 4, 6, 7, 8, 9, 10, 1, 5)
+plot.relat <- plot.relat %>% arrange(order)
+plot.relat <- plot.relat[-c(4)]
+colnames(plot.relat) <- c("Response", "N", "Proportion")
+
+kable(plot.relat)
+```
+
+###With how safe you feel?
+```{r} 
+safe <- prop.table(table(factor(d$Q48_pwb_f, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))))*100
+safe <- as.data.frame(safe)
+safe$response <- substring(row.names(safe), 1)
+safe$response <- revalue(as.factor(safe$response), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+safe$plot <- factor(safe$response, safe$response)
+cols <- c(rev(brewer.pal(10,"RdYlGn")),"grey")
+safe.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols)  +
+      ylab("Percent of total") +
+      xlab("")
+      
+safe.plot + geom_bar(aes(x = plot), data = safe, stat = "identity") 
+      
+safe.tb <- as.factor(d$Q48_pwb_f)
+safe.tb <- summary(safe.tb)
+safe.tb <- as.data.frame(safe.tb)
+safe.tb$Var1 <- substring(row.names(safe.tb), 1)
+
+nval.df <- c("0", "0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$safe.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("7", "8")
+nval.df <- nval.df[-c(1)]
+safe.tb <- rbind(safe.tb, nval.df)
+safe.tb$response <- revalue(as.factor(safe.tb$Var1), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+plot.safe <- merge(safe, safe.tb, by = "response")
+plot.safe <- plot.safe[-c(2, 4, 6)]
+plot.safe <- setcolorder(plot.safe, c("response", "safe.tb", "Freq"))
+plot.safe$order <- c(2, 3, 4, 6, 7, 8, 9, 10, 1, 5)
+plot.safe <- plot.safe %>% arrange(order)
+plot.safe <- plot.safe[-c(4)]
+colnames(plot.safe) <- c("Response", "N", "Proportion")
+
+kable(plot.safe)
+```
+
+###With feeling part of your community?
+```{r} 
+com <- prop.table(table(factor(d$Q48_pwb_g, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))))*100
+com <- as.data.frame(com)
+com$response <- substring(row.names(com), 1)
+com$response <- revalue(as.factor(com$response), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+com$plot <- factor(com$response, com$response)
+cols <- c(rev(brewer.pal(10,"RdYlGn")),"grey")
+com.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols)  +
+      ylab("Percent of total") +
+      xlab("")
+      
+com.plot + geom_bar(aes(x = plot), data = com, stat = "identity") 
+      
+com.tb <- as.factor(d$Q48_pwb_g)
+com.tb <- summary(com.tb)
+com.tb <- as.data.frame(com.tb)
+com.tb$Var1 <- substring(row.names(com.tb), 1)
+com.tb$response <- revalue(as.factor(com.tb$Var1), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+plot.com <- merge(com, com.tb, by = "response")
+plot.com <- plot.com[-c(2, 4, 6)]
+plot.com <- setcolorder(plot.com, c("response", "com.tb", "Freq"))
+plot.com$order <- c(2, 3, 4, 6, 7, 8, 9, 10, 1, 5)
+plot.com <- plot.com %>% arrange(order)
+plot.com <- plot.com[-c(4)]
+colnames(plot.com) <- c("Response", "N", "Proportion")
+
+kable(plot.com)
+```
+
+###With your future security?
+```{r} 
+sec <- prop.table(table(factor(d$Q48_pwb_h, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))))*100
+sec <- as.data.frame(sec)
+sec$response <- substring(row.names(sec), 1)
+sec$response <- revalue(as.factor(sec$response), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+sec$plot <- factor(sec$response, sec$response)
+cols <- c(rev(brewer.pal(10,"RdYlGn")),"grey")
+sec.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols)  +
+      ylab("Percent of total") +
+      xlab("")
+      
+sec.plot + geom_bar(aes(x = plot), data = sec, stat = "identity") 
+      
+sec.tb <- as.factor(d$Q48_pwb_h)
+sec.tb <- summary(sec.tb)
+sec.tb <- as.data.frame(sec.tb)
+sec.tb$Var1 <- substring(row.names(sec.tb), 1)
+sec.tb$response <- revalue(as.factor(sec.tb$Var1), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+plot.sec <- merge(sec, sec.tb, by = "response")
+plot.sec <- plot.sec[-c(2, 4, 6)]
+plot.sec <- setcolorder(plot.sec, c("response", "sec.tb", "Freq"))
+plot.sec$order <- c(2, 3, 4, 6, 7, 8, 9, 10, 1, 5)
+plot.sec <- plot.sec %>% arrange(order)
+plot.sec <- plot.sec[-c(4)]
+colnames(plot.sec) <- c("Response", "N", "Proportion")
+
+kable(plot.sec)
+```
+
+###With your spirituality or religion?
+```{r} 
+spirit <- prop.table(table(factor(d$Q48_pwb_i, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))))*100
+spirit <- as.data.frame(spirit)
+spirit$response <- substring(row.names(spirit), 1)
+spirit$response <- revalue(as.factor(spirit$response), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+spirit$plot <- factor(spirit$response, spirit$response)
+cols <- c(rev(brewer.pal(10,"RdYlGn")),"grey")
+spirit.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols)  +
+      ylab("Percent of total") +
+      xlab("")
+      
+spirit.plot + geom_bar(aes(x = plot), data = spirit, stat = "identity") 
+      
+spirit.tb <- as.factor(d$Q48_pwb_i)
+spirit.tb <- summary(spirit.tb)
+spirit.tb <- as.data.frame(spirit.tb)
+spirit.tb$Var1 <- substring(row.names(spirit.tb), 1)
+
+nval.df <- c("0", "0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$spirit.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("9", "10")
+nval.df <- nval.df[-c(1)]
+spirit.tb <- rbind(spirit.tb, nval.df)
+spirit.tb$response <- revalue(as.factor(spirit.tb$Var1), c("1" = "Completely satisfied", "5" = "Neutral", "10" = "Completely dissatisfied"))
+
+plot.spirit <- merge(spirit, spirit.tb, by = "response")
+plot.spirit <- plot.spirit[-c(2, 4, 6)]
+plot.spirit <- setcolorder(plot.spirit, c("response", "spirit.tb", "Freq"))
+plot.spirit$order <- c(2, 3, 4, 6, 7, 8, 9, 10, 1, 5)
+plot.spirit <- plot.spirit %>% arrange(order)
+plot.spirit <- plot.spirit[-c(4)]
+colnames(plot.spirit) <- c("Response", "N", "Proportion")
+
+kable(plot.spirit)
+```
+
+#*Section 6: Neighbourhood*
+##Q49:Please indicate your satisfaction with each item:{.tabset}
+###Heatplot visualization
+```{r}
+#####This is another way to visualize multipart Likert scale questions using the package "Likert"
+##create Likert data set based on Q49 question components 
+items <- d %>% select(Q49_neighb_a, Q49_neighb_b, Q49_neighb_c, Q49_neighb_d)
+items$Q49_neighb_a <- revalue(as.factor(items$Q49_neighb_a), c("1" = "Strongly satisfied", "2" = "Satisfied", "3" = "Neither satisfied nor dissatisfied", "4" = "Dissatisfied", "5" = "Strongly dissatisfied"))
+items$Q49_neighb_b <- revalue(as.factor(items$Q49_neighb_b), c("1" = "Strongly satisfied", "2" = "Satisfied", "3" = "Neither satisfied nor dissatisfied", "4" = "Dissatisfied", "5" = "Strongly dissatisfied"))
+items$Q49_neighb_c <- revalue(as.factor(items$Q49_neighb_c), c("1" = "Strongly satisfied", "2" = "Satisfied", "3" = "Neither satisfied nor dissatisfied", "4" = "Dissatisfied", "5" = "Strongly dissatisfied"))
+items$Q49_neighb_d <- revalue(as.factor(items$Q49_neighb_d), c("1" = "Strongly satisfied", "2" = "Satisfied", "3" = "Neither satisfied nor dissatisfied", "4" = "Dissatisfied", "5" = "Strongly dissatisfied"))
+
+##Create question names for plot displat
+names(items) <- c("Your neighbourhood as a good place to live", "The number of people you know in your neighbourhood", "The ethnic diversity of your neighbourhood", "Your neighbourhood as a good place to raise children")
+l.items <- likert(items)
+
+##realize a heat plot of question responses
+likert.heat.plot(l.items, low.color = "white", high.color = "blue",
+                 text.color = "black", text.size = 4, wrap = 50)
+```
+
+###Barplot visualization
+```{r}
+##or realize a bar plot of question response
+likert.bar.plot(l.items, center = 3)
+```
+
+#*Section 7: Neighbourhood Selection*
+##Q50:Before moving into your current dwelling, when you were looking for a neighbourhood to live in, to what extent were the following factoristics important?{.tabset}
+###Heatplot
+```{r}
+d2d <- d %>% select(Q50_neigh_pref_a, Q50_neigh_pref_b, Q50_neigh_pref_c, Q50_neigh_pref_d, Q50_neigh_pref_e, Q50_neigh_pref_f, Q50_neigh_pref_g, Q50_neigh_pref_h)
+d2d <- filter(d2d, Q50_neigh_pref_b != 77, Q50_neigh_pref_c != 77, Q50_neigh_pref_d != 77, Q50_neigh_pref_e != 77, Q50_neigh_pref_f != 77, Q50_neigh_pref_g != 77, Q50_neigh_pref_h != 77, Q50_neigh_pref_a != 77 )
+
+items2 <- as.data.frame(d2d)
+
+items2$Q50_neigh_pref_a <- revalue(as.factor(items2$Q50_neigh_pref_a), c("1" = "Very important", "2" = "Somewhat important", "3" = "Not very important", "4" = "Not very important at all"))
+items2$Q50_neigh_pref_b <- revalue(as.factor(items2$Q50_neigh_pref_b), c("1" = "Very important", "2" = "Somewhat important", "3" = "Not very important", "4" = "Not very important at all"))
+items2$Q50_neigh_pref_c <- revalue(as.factor(items2$Q50_neigh_pref_c), c("1" = "Very important", "2" = "Somewhat important", "3" = "Not very important", "4" = "Not very important at all"))
+items2$Q50_neigh_pref_d <- revalue(as.factor(items2$Q50_neigh_pref_d), c("1" = "Very important", "2" = "Somewhat important", "3" = "Not very important", "4" = "Not very important at all"))
+items2$Q50_neigh_pref_e <- revalue(as.factor(items2$Q50_neigh_pref_e), c("1" = "Very important", "2" = "Somewhat important", "3" = "Not very important", "4" = "Not very important at all"))
+items2$Q50_neigh_pref_f <- revalue(as.factor(items2$Q50_neigh_pref_f), c("1" = "Very important", "2" = "Somewhat important", "3" = "Not very important", "4" = "Not very important at all"))
+items2$Q50_neigh_pref_g <- revalue(as.factor(items2$Q50_neigh_pref_g), c("1" = "Very important", "2" = "Somewhat important", "3" = "Not very important", "4" = "Not very important at all"))
+items2$Q50_neigh_pref_h <- revalue(as.factor(items2$Q50_neigh_pref_h), c("1" = "Very important", "2" = "Somewhat important", "3" = "Not very important", "4" = "Not very important at all"))
+
+
+names(items2) <- c("Good access to public transportation", "Sufficient parks and green spaces", "Sufficient shops and services", "Proximity to doctors, pharmacy and other health services", "A good knowledge of the neighbourhood", "Presence of relatives, friends or acquaintances", "A neighbourhood where it is pleasant to walk", "A neighbourhood where it is practical to move around by car")
+l.items2 <- likert(items2)
+
+likert.heat.plot(l.items2, low.color = "white", high.color = "blue",
+                 text.color = "black", text.size = 4, wrap = 50)
+```
+
+###Barplot
+```{r}
+likert.bar.plot(l.items2, center = 2.5)
+```
+
+
+#*Section 8: Demographics*
+##Q51: What is your marital status? Are you:
+```{r} 
+marital <- prop.table(table(factor(d$Q51_marital_status, levels = c("1", "2", "3", "4"))))*100
+marital <- as.data.frame(marital)
+marital$response <- substring(row.names(marital), 1)
+marital$response <- revalue(as.factor(marital$response), c("1" = "Single", "2" = "Married/commonlaw", "3" = "Separated/divorced", "4" = "Widowed"))
+
+marital$plot <- factor(marital$response, marital$response)
+
+marital.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_brewer(palette = "Set3")  +
+      ylab("Percent of total") +
+      xlab("")
+      
+marital.plot + geom_bar(aes(x = plot), data = marital, stat = "identity") 
+      
+marital.tb <- as.factor(d$Q51_marital_status)
+marital.tb <- summary(marital.tb)
+marital.tb <- as.data.frame(marital.tb)
+marital.tb$Var1 <- substring(row.names(marital.tb), 1)
+
+marital.tb$response <- revalue(as.factor(marital.tb$Var1), c("1" = "Single", "2" = "Married/commonlaw", "3" = "Separated/divorced", "4" = "Widowed"))
+
+plot.marital <- merge(marital, marital.tb, by = "response")
+plot.marital <- plot.marital[-c(2, 4, 6)]
+plot.marital <- setcolorder(plot.marital, c("response", "marital.tb", "Freq"))
+plot.marital$order <- c(2, 3, 1, 4)
+plot.marital <- plot.marital %>% arrange(order)
+plot.marital <- plot.marital[-c(4)]
+colnames(plot.marital) <- c("Response", "N", "Proportion")
+
+kable(plot.marital)
+```
+
+##Q52: Do you have children?
+```{r}
+kids <- prop.table(table(factor(d$Q52_children, levels = c("1", "2"))))*100
+kids <- as.data.frame(kids)
+kids$response <- substring(row.names(kids), 1)
+kids$response <- revalue(as.factor(kids$response), c("1" = "Yes",  "2" = "No"))
+
+kids$plot <- factor(kids$response, kids$response)
+
+cols <- c("#31a354","#f03b20", "grey") 
+kids.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+kids.plot + geom_bar(aes(x = plot), data = kids, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+kids.tb <- as.factor(d$Q52_children)
+kids.tb <- summary(kids.tb)
+kids.tb <- as.data.frame(kids.tb)
+kids.tb$Var1 <- substring(row.names(kids.tb), 1)
+kids.tb$response <- revalue(as.factor(kids.tb$Var1), c("1" = "Yes", "2" = "No"))
+
+plot.kids <- merge(kids, kids.tb, by = "response")
+plot.kids <- plot.kids[-c(2, 4, 6)]
+plot.kids <- setcolorder(plot.kids, c("response", "kids.tb", "Freq"))
+plot.kids$order <- c(2, 1)
+plot.kids <- plot.kids %>% arrange(order)
+plot.kids <- plot.kids[-c(4)]
+colnames(plot.kids) <- c("Response", "N", "Proportion")
+
+kable(plot.kids)
+```
+
+##Q53: How many children do you have?
+```{r}
+nkids <- prop.table(table(factor(d$Q53_living_children, levels = c("1", "2", "3", "4", "5", "6")), exclude=NULL))*100
+nkids <- as.data.frame(nkids)
+nkids <- as.data.frame(nkids)
+nkids$response <- substring(row.names(nkids), 1)
+nkids$response <- revalue(as.factor(nkids$response), c("7" = "No children"))
+
+nkids$plot <- factor(nkids$response, nkids$response)
+
+cols <- c(brewer.pal(6,"YlGnBu"),"grey")
+nkids.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+nkids.plot + geom_bar(aes(x = plot), data = nkids, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+nkids.tb <- as.factor(d$Q53_living_children)
+nkids.tb <- summary(nkids.tb)
+nkids.tb <- as.data.frame(nkids.tb)
+nkids.tb$Var1 <- substring(row.names(nkids.tb), 1)
+nkids.tb$response <- revalue(as.factor(nkids.tb$Var1), c("NA's" = "No children"))
+
+plot.nkids <- merge(nkids, nkids.tb, by = "response")
+plot.nkids <- plot.nkids[-c(2, 4, 6)]
+plot.nkids <- setcolorder(plot.nkids, c("response", "nkids.tb", "Freq"))
+
+colnames(plot.nkids) <- c("Response", "N", "Proportion")
+
+kable(plot.nkids)
+```
+
+##Q54: What is your current living arrangement? Do you live:
+```{r}
+livewith <- prop.table(table(factor(d$Q54_living_arrange, levels = c("[1]", "[2]", "[3]", "[4]", "[5]", "[6]", "[7]", "[2, 3, 4, 7, 6]", "[2, 3, 4]", "[2, 3, 5]", "[2, 3]", "[2, 5]", "[2, 6]", "[2, 7]")), exclude=NULL))*100
+livewith <- as.data.frame(livewith)
+livewith <- as.data.frame(livewith)
+livewith$response <- substring(row.names(livewith), 1)
+livewith$response <- revalue(as.factor(livewith$response), c("1" = "Alone", "2" = "With a spouse/partner", "3" = "With children", "4" = "With grandchildren", "5" = "With relatives/siblings", "6" = "With friends", "7" = "With other people", "8" = "With spouse, children, grandchildren, friends & others", "9" = "With spouse, children & grandchildren", "10" = "With spouse, children & relatives/siblings", "11" = "With spouse & children", "12" = "With spouse & relatives/siblings", "13" = "With spouse & friends", "14" = "With spouse & others", "15" = "NA"))
+livewith$order <- c(3, 1, 7, 13, 5, 4, 6, 14, 12, 8, 2, 11, 10, 9, 15)
+
+livewith$plot <- factor(livewith$response, livewith$response[order(livewith$order)])
+
+livewith.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+cols <- c("#014636", "#016c59", "#02818a", "#3690c0", "#67a9cf", "#a6bddb", "#d0d1e6", "#ece2f0", "#fff7fb", "#fd8d3c", "#feb24c", "#fed976", "#ffeda0", "#ffffcc", "grey")
+livewith.plot + geom_bar(aes(x = plot), data = livewith, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+
+   
+livewith.tb <- as.factor(d$Q54_living_arrange)
+livewith.tb <- summary(livewith.tb)
+livewith.tb <- as.data.frame(livewith.tb)
+livewith.tb$Var1 <- substring(row.names(livewith.tb), 1)
+
+nval.df <- c("0", "7") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$livewith.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("[4]", "NA")
+nval.df <- nval.df[-c(1)]
+livewith.tb <- rbind(livewith.tb, nval.df)
+livewith.tb$response <- revalue(as.factor(livewith.tb$Var1), c("[1]" = "Alone", "[2]" = "With a spouse/partner", "[3]" = "With children", "[4]" = "With grandchildren", "[5]" = "With relatives/siblings", "[6]" = "With friends", "[7]" = "With other people", "[2, 3, 4, 7, 6]" = "With spouse, children, grandchildren, friends & others", "[2, 3, 4]" = "With spouse, children & grandchildren", "[2, 3, 5]" = "With spouse, children & relatives/siblings", "[2, 3]" = "With spouse & children",  "[2, 5]" = "With spouse & relatives/siblings", "[2, 6]" = "With spouse & friends", "[2, 7]" = "With spouse & others"))
+
+plot.livewith <- merge(livewith, livewith.tb, by = "response")
+plot.livewith <- plot.livewith[-c(2, 4, 5, 7)]
+plot.livewith <- setcolorder(plot.livewith, c("response", "livewith.tb", "Freq"))
+plot.livewith$order <- c(3, 15, 1, 7, 4, 13, 6, 5, 2, 10, 9, 11, 12, 8, 14)
+plot.livewith <- plot.livewith %>% arrange(order)
+plot.livewith <- plot.livewith[-c(4)]
+colnames(plot.livewith) <- c("Response", "N", "Proportion")
+
+kable(plot.livewith)
+```
+
+##Q57: How many adults aged 16 or older live in your household including yourself?
+```{r}
+ggplot(d, aes(x = d$Q57_adults_household)) + geom_histogram(binwidth = 1, na.rm = TRUE) + xlab("Number of adults in household")
+summary(d$Q57_adults_household)
+```
+
+##Q58: When did you move to your current residence?
+```{r, results = FALSE, warning = FALSE}
+##create a data frame to summarize length of time someone has been at their residence
+d$date_completed <- as.Date(d$date_completed, format = "%d-%m-%Y")
+dt <- d %>% select(pid, date_completed, Q58_residence) %>% separate(Q58_residence, dep = "-", into = c("Year", "Month", "Day"))
+dt$moveDate <- as.Date(with(dt, paste(Day, Month, Year, sep = "-")), "%d-%m-%Y")
+dt$DaysRes <-  dt$date_completed - dt$moveDate        
+dt$YrsRes <- dt$DaysRes/365.25
+dt$YrsRes <- round(dt$YrsRes, 2)
+dt$YrsRes <- as.numeric(dt$YrsRes)
+```
+
+```{r}
+ggplot(dt) + geom_histogram(aes(x = dt$YrsRes), na.rm = TRUE, binwidth = 1) + xlab("Number of years at residence")
+summary(dt$YrsRes)
+```
+-the negative value above indicates that the individual completed the survey before moving to their current residence 
+
+
+##Q59: Were you born in Canada?
+```{r, warning = FALSE}
+can <- prop.table(table(factor(d$Q59_born_can, levels = c("1", "2"))))*100
+can <- as.data.frame(can)
+can$response <- substring(row.names(can), 1)
+can$response <- revalue(as.factor(can$response), c("1" = "Yes",  "2" = "No"))
+
+can$plot <- factor(can$response, can$response)
+
+cols <- c("#31a354","#f03b20", "grey") 
+can.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot), na.rm = TRUE) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) 
+
+can.plot + geom_histogram(aes(x = plot), data = can, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols) +
+      ylab("Percent of total") +
+      xlab("Response")
+   
+
+can.tb <- as.factor(d$Q59_born_can)
+can.tb <- summary(can.tb)
+can.tb <- as.data.frame(can.tb)
+can.tb$Var1 <- substring(row.names(can.tb), 1)
+can.tb$response <- revalue(as.factor(can.tb$Var1), c("1" = "Yes", "2" = "No"))
+plot.can <- merge(can, can.tb, by = "response")
+plot.can <- plot.can[-c(2, 4, 6)]
+plot.can <- setcolorder(plot.can, c("response", "can.tb", "Freq"))
+plot.can$order <- c(2, 1)
+plot.can <- plot.can %>% arrange(order)
+plot.can <- plot.can[-c(4)]
+colnames(plot.can) <- c("Response", "N", "Proportion")
+
+kable(plot.can)
+```
+
+```{r}
+##create a data frame of people who responded "no" to the question "Were you born in canada"
+imm <- d %>%  
+  select(Q59_born_can, Q60_move_can) %>%
+  filter(Q59_born_can == "2")
+
+##create a variable representing how long the respnded has been in Canada
+imm$yrs_Canada <- (2017-imm$Q60_move_can)
+ggplot(imm, aes(x = Q60_move_can)) + geom_histogram(binwidth = 1) + xlab("Moved to  Canada")+ ggtitle("When did you move to Canada?")
+imm <- imm[-c(1, 2)]
+summary(imm)
+```
+
+##Q61: To which ethnic or cultural groups did your ancestors belong? (Check all that apply)
+```{r}
+ethnic <- prop.table(table(factor(d$Q61_group_id, levels = c("[1]", "[1, 2, 4]", "[1, 4]", "[2]", "[2, 4]", "[3]", "[4]", "[4, 6]", "[5]", "[6]", "[77]")), exclude=NULL))*100
+ethnic <- as.data.frame(ethnic)
+ethnic <- as.data.frame(ethnic)
+ethnic$response <- substring(row.names(ethnic), 1)
+ethnic$response <- revalue(as.factor(ethnic$response), c("1" = "Aboriginal", "2" = "Aboriginal/Asian/Caucasian", "3" = "Aboriginal/Caucasian", "4" = "Asian", "5" = "Asian/Caucasian", "6" = "Black", "7" = "Caucasian", "8" = "Caucasian/Middle Eastern", "9" = "Latin American", "10" = "Middle Eastern", "11" = "Don't know/prefer no response", "12" = "NA"))
+
+ethnic$plot <- factor(ethnic$response, ethnic$response)
+
+ethnic.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6))
+
+ethnic.plot + geom_bar(aes(x = plot), data = ethnic, stat = "identity") +
+      guides(fill = FALSE) +
+      scale_fill_brewer(palette = "Set3") +
+      ylab("Percent of total") +
+      xlab("Response")
+
+  
+ethnic.tb <- as.factor(d$Q61_group_id)
+ethnic.tb <- summary(ethnic.tb)
+ethnic.tb <- as.data.frame(ethnic.tb)
+ethnic.tb$Var1 <- substring(row.names(ethnic.tb), 1)
+
+
+nval.df <- c("0", "0", "0", "23") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$ethnic.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("[1]", "[3]","[6]", "[99]")
+nval.df <- nval.df[-c(1)]
+ethnic.tb <- rbind(ethnic.tb, nval.df)
+ethnic.tb$response <- revalue(as.factor(ethnic.tb$Var1), c("[1]" = "Aboriginal", "[1, 2, 4]" = "Aboriginal/Asian/Caucasian", "[1, 4]" = "Aboriginal/Caucasian", "[2]" = "Asian", "[2, 4]" = "Asian/Caucasian", "[3]" = "Black", "[4]" = "Caucasian", "[4, 6]" = "Caucasian/Middle Eastern", "[5]" = "Latin American", "[6]" = "Middle Eastern", "[77]" = "Don't know/prefer no response", "[99]" = "NA"))
+
+plot.ethnic <- merge(ethnic, ethnic.tb, by = "response")
+plot.ethnic <- plot.ethnic[-c(2, 4, 6)]
+plot.ethnic <- setcolorder(plot.ethnic, c("response", "ethnic.tb", "Freq"))
+plot.ethnic$order <- c(1, 2, 3, 4, 5, 6, 7, 8, 11, 9, 10, 12)
+plot.ethnic <- plot.ethnic %>% arrange(order)
+plot.ethnic <- plot.ethnic[-c(4)]
+colnames(plot.ethnic) <- c("Response", "N", "Proportion")
+
+kable(plot.ethnic)
+```
+
+##Q62: Which category best describes your annual household income, taking into account all sources of income?
+```{r} 
+income <- prop.table(table(factor(d$Q62_income, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "77"))))*100
+income <- as.data.frame(income)
+income$response <- substring(row.names(income), 1)
+income$response <- revalue(as.factor(income$response), c("1" = "No income", "2" = "$1 to $9,999", "3" = "$10,000 to $14,999", "4" = "$15,000 to $19,999", "5" = "$20,000 to $29,999", "6" = "$30,000 to $39,999", "7" = "$40,000 to $49,999", "8" = "$50,000 to $99,999", "9" = "$100,000 to $149,999", "10" = " $150,000 to $199,999", "11" = "$200,000 or more", "12" = "Don't know/prefer no response"))
+
+income$plot <- factor(income$response, income$response)
+
+cols <- c("#000000","#fff7bc", "#f7fcf5", "#e5f5e0", "#c7e9c0", "#a1d99b", "#74c476", "#41ab5d", "#238b45", "#006d2c", "#00441b", "#bdbdbd")
+income.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_manual(values = cols)  +
+      ylab("Percent of total") +
+      xlab("")
+      
+income.plot + geom_bar(aes(x = plot), data = income, stat = "identity") 
+      
+income.tb <- as.factor(d$Q62_income)
+income.tb <- summary(income.tb)
+income.tb <- as.data.frame(income.tb)
+income.tb$Var1 <- substring(row.names(income.tb), 1)
+
+nval.df <- c("0") #insert missing values 
+nval.df <- as.data.frame(nval.df)
+nval.df$income.tb <- as.factor(nval.df$nval.df)
+nval.df$Var1 <- c("1")
+nval.df <- nval.df[-c(1)]
+income.tb <- rbind(income.tb, nval.df)
+income.tb$response <- revalue(as.factor(income.tb$Var1), c("1" = "No income", "2" = "$1 to $9,999", "3" = "$10,000 to $14,999", "4" = "$15,000 to $19,999", "5" = "$20,000 to $29,999", "6" = "$30,000 to $39,999", "7" = "$40,000 to $49,999", "8" = "$50,000 to $99,999", "9" = "$100,000 to $149,999", "10" = " $150,000 to $199,999", "11" = "$200,000 or more", "77" = "Don't know/prefer no response"))
+
+plot.income <- merge(income, income.tb, by = "response")
+plot.income <- plot.income[-c(2, 4, 6)]
+plot.income <- setcolorder(plot.income, c("response", "income.tb", "Freq"))
+plot.income$order <- c(10, 2, 3, 9, 4, 5, 11, 6, 7, 8, 12, 1)
+plot.income <- plot.income %>% arrange(order)
+plot.income <- plot.income[-c(4)]
+colnames(plot.income) <- c("Response", "N", "Proportion")
+
+kable(plot.income)
+```
+
+##Q63: To what extent does this annual household income allow you to satisfy your household's needs?
+```{r} 
+needs <- prop.table(table(factor(d$Q63_income_needs, levels = c("1", "2", "3", "4", "77"))))*100
+needs <- as.data.frame(needs)
+needs$response <- substring(row.names(needs), 1)
+needs$response <- revalue(as.factor(needs$response), c("1" = "Very well", "2" = "Well", "3" = "Not so well", "4" = "Not at all", "5" = "Don't know/prefer no response"))
+
+needs$plot <- factor(needs$response, needs$response)
+
+needs.plot <- ggplot(plot, aes(x = response, y = Freq, fill = plot)) + theme(axis.text.x  = element_text(angle=90, vjust=.6)) +
+      guides(fill = FALSE) +
+      scale_fill_brewer(palette = "YlGn", direction=-1) +
+      ylab("Percent of total") +
+      xlab("")
+      
+needs.plot + geom_bar(aes(x = plot), data = needs, stat = "identity") 
+      
+needs.tb <- as.factor(d$Q63_income_needs)
+needs.tb <- summary(needs.tb)
+needs.tb <- as.data.frame(needs.tb)
+needs.tb$Var1 <- substring(row.names(needs.tb), 1)
+
+
+needs.tb$response <- revalue(as.factor(needs.tb$Var1), c("1" = "Very well", "2" = "Well", "3" = "Not so well", "4" = "Not at all", "77" = "Don't know/prefer no response"))
+
+plot.needs <- merge(needs, needs.tb, by = "response")
+plot.needs <- plot.needs[-c(2, 4, 6)]
+plot.needs <- setcolorder(plot.needs, c("response", "needs.tb", "Freq"))
+plot.needs$order <- c(5, 4, 3, 1, 2)
+plot.needs <- plot.needs %>% arrange(order)
+plot.needs <- plot.needs[-c(4)]
+colnames(plot.needs) <- c("Response", "N", "Proportion")
+
+kable(plot.needs)
+```
+
